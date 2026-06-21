@@ -1,122 +1,608 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MOVVO</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { background-color: #1A1A1A; color: #FFFFFF; font-family: system-ui, sans-serif; }
-    .text-movvo-green { color: #00FF66; }
-    .bg-movvo-green { background-color: #00FF66; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MOVVO - Seu Corre Privado</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151d30;
+            --text-color: #f3f4f6;
+            --accent-color: #3b82f6;
+            --island-bg: rgba(21, 29, 48, 0.85);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom) 20px;
+            overflow-x: hidden;
+        }
+
+        /* --- TELA DE LOGIN OVERLAY --- */
+        #login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .login-card h2 {
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .login-card p {
+            color: #9ca3af;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 14px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .btn-login {
+            width: 100%;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+
+        .btn-login:active {
+            transform: scale(0.98);
+        }
+
+        .logout-btn {
+            background: transparent;
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        /* --- DYNAMIC ISLAND (NOTIFICAÇÕES) --- */
+        .dynamic-island-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .dynamic-island {
+            background-color: var(--island-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 180px;
+            max-width: 320px;
+            height: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .dynamic-island.expanded {
+            border-radius: 20px;
+            padding: 15px 25px;
+            height: auto;
+            min-width: 260px;
+        }
+
+        .island-content {
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* --- INTERFACE PRINCIPAL --- */
+        header {
+            width: 100%;
+            max-width: 480px;
+            margin-top: 70px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 480px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 24px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .card.full-width {
+            grid-column: span 2;
+            align-items: center;
+            padding: 25px;
+            background: linear-gradient(135deg, #151d30 0%, #1e2942 100%);
+        }
+
+        .card h3 {
+            font-size: 13px;
+            text-transform: uppercase;
+            color: #9ca3af;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .card .value {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .card.full-width .value {
+            font-size: 36px;
+            margin-top: 5px;
+        }
+
+        .positivo { color: #10b981; }
+        .negativo { color: #ef4444; }
+
+        /* --- TECLADO E FLUXO DE ENTRADA --- */
+        .input-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: var(--card-bg);
+            border-radius: 32px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .tab-menu {
+            display: flex;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 100px;
+            padding: 4px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #9ca3af;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active.ganho {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .tab-btn.active.gasto {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .display {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 100%;
+        }
+
+        .key {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            color: var(--text-color);
+            font-size: 24px;
+            font-weight: 600;
+            border-radius: 100px;
+            height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.1s;
+        }
+
+        .key:active {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .key.action {
+            background: var(--accent-color);
+            color: white;
+        }
+        .key.action:active {
+            background: #2563eb;
+        }
+    </style>
 </head>
-<body class="p-4 max-w-md mx-auto">
+<body>
 
-  <!-- HEADER -->
-  <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
-    <h1 class="text-2xl font-black tracking-wider">MO<span class="text-movvo-green">VV</span>O</h1>
-    <span class="text-xs bg-gray-800 px-3 py-1 rounded-full text-gray-400">O Painel do Corre</span>
-  </div>
-
-  <!-- DASHBOARD DE LUCRO REAL -->
-  <div class="bg-zinc-900 p-5 rounded-2xl border border-gray-800 mb-6 shadow-xl">
-    <p class="text-xs uppercase tracking-widest text-gray-400 font-semibold">Seu Lucro Real Limpo</p>
-    <h2 id="lucro-real" class="text-4xl font-black text-movvo-green mt-1">Carregando...</h2>
-    
-    <div class="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-800">
-      <div>
-        <p class="text-xs text-gray-400">Faturamento Bruto</p>
-        <p id="total-ganhos" class="text-lg font-bold text-white">R$ 0,00</p>
-      </div>
-      <div>
-        <p class="text-xs text-gray-400">Custos do Dia</p>
-        <p id="total-gastos" class="text-lg font-bold text-red-500">R$ 0,00</p>
-      </div>
+    <div id="login-overlay">
+        <div class="login-card" id="login-form-container">
+            <h2 id="login-title">Entrar no MOVVO</h2>
+            <p id="login-subtitle">Por favor, insira suas credenciais para acessar seu painel.</p>
+            
+            <div id="inputs-wrapper">
+                </div>
+            
+            <button class="btn-login" onclick="executarAutenticacao()" id="btn-acao-login">Entrar</button>
+        </div>
     </div>
-  </div>
 
-  <!-- FORMULÁRIO DE LANÇAMENTO RÁPIDO -->
-  <div class="bg-zinc-900 p-5 rounded-2xl border border-gray-800 shadow-xl">
-    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">⚡ Lançar Novo Valor</h3>
-    
-    <div class="space-y-4">
-      <div>
-        <label class="block text-xs text-gray-400 mb-1">Quanto entrou no App? (Bruto)</label>
-        <input type="number" id="ganhos-input" step="0.01" placeholder="Ex: 250.00" class="w-full bg-zinc-800 border border-gray-700 rounded-xl p-3 text-xl font-bold focus:outline-none focus:border-movvo-green text-white">
-      </div>
-      
-      <div>
-        <label class="block text-xs text-gray-400 mb-1">Quanto gastou? (Combustível/Comida)</label>
-        <input type="number" id="gastos-input" step="0.01" placeholder="Ex: 80.00" class="w-full bg-zinc-800 border border-gray-700 rounded-xl p-3 text-xl font-bold focus:outline-none focus:border-red-500 text-white">
-      </div>
-      
-      <button onclick="enviarDados()" id="btn-salvar" class="w-full bg-movvo-green text-black font-black text-lg p-4 rounded-xl active:scale-95 transition-transform shadow-lg uppercase tracking-wider mt-2">
-        Salvar o Corre
-      </button>
+    <div class="dynamic-island-container">
+        <div class="dynamic-island" id="island">
+            <div class="island-content" id="island-text">Buscando totais... 🕒</div>
+        </div>
     </div>
-  </div>
 
-  <script>
-    // URL oficial do seu Apps Script injetada com sucesso
-    const API_URL = "https://script.google.com/macros/s/AKfycbwFA5VmcxY-PCXMy6FGImheNHpfdUbdECYHJmcf-xxXHRJzHPpxgGvyivYGWhwVnUdq/exec";
+    <header>
+        <div>
+            <h1>MOVVO</h1>
+            <p style="font-size: 12px; color: #9ca3af;" id="txt-welcome">Painel Privado</p>
+        </div>
+        <button class="logout-btn" onclick="fazerLogout()">Sair</button>
+    </header>
 
-    window.onload = function() {
-      carregarTotais();
-    };
+    <div class="dashboard">
+        <div class="card full-width">
+            <h3>Lucro do Dia</h3>
+            <div class="value" id="lucro-total">R$ 0,00</div>
+        </div>
+        <div class="card">
+            <h3>Faturamento</h3>
+            <div class="value positivo" id="ganhos-total">R$ 0,00</div>
+        </div>
+        <div class="card">
+            <h3>Gastos</h3>
+            <div class="value negativo" id="gastos-total">R$ 0,00</div>
+        </div>
+    </div>
 
-    function carregarTotais() {
-      fetch(API_URL)
-        .then(response => response.json())
-        .then(totais => {
-          document.getElementById('lucro-real').innerText = 'R$ ' + parseFloat(totais.lucro).toLocaleString('pt-BR', {minimumFractionDigits: 2});
-          document.getElementById('total-ganhos').innerText = 'R$ ' + parseFloat(totais.ganhos).toLocaleString('pt-BR', {minimumFractionDigits: 2});
-          document.getElementById('total-gastos').innerText = 'R$ ' + parseFloat(totais.gastos).toLocaleString('pt-BR', {minimumFractionDigits: 2});
-        })
-        .catch(err => {
-          document.getElementById('lucro-real').innerText = "Erro ao carregar";
-          console.error(err);
+    <div class="input-container">
+        <div class="tab-menu">
+            <button class="tab-btn active ganho" onclick="mudarFluxo('ganho', this)">Faturamento</button>
+            <button class="tab-btn gasto" onclick="mudarFluxo('gasto', this)">Gasto</button>
+        </div>
+
+        <div class="display" id="valor-display">R$ 0,00</div>
+
+        <div class="keyboard">
+            <div class="key" onclick="digitar(1)">1</div>
+            <div class="key" onclick="digitar(2)">2</div>
+            <div class="key" onclick="digitar(3)">3</div>
+            <div class="key" onclick="digitar(4)">4</div>
+            <div class="key" onclick="digitar(5)">5</div>
+            <div class="key" onclick="digitar(6)">6</div>
+            <div class="key" onclick="digitar(7)">7</div>
+            <div class="key" onclick="digitar(8)">8</div>
+            <div class="key" onclick="digitar(9)">9</div>
+            <div class="key" onclick="digitar('C')">C</div>
+            <div class="key" onclick="digitar(0)">0</div>
+            <div class="key action" onclick="processarEnvioCorre()">✓</div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURAÇÃO: Sua URL do Google Apps Script fornecida
+        const API_URL = "https://script.google.com/macros/s/AKfycbwistQ1bMOM34Z5_Ikfm2laBYXnW3Wms_Al6IrVJy9pn5oclQQKihwcPiCkGl6LmjjbiA/exec";
+
+        let currentFluxo = 'ganho';
+        let currentInputValue = 0; // Guardado em centavos (ex: 1500 = R$ 15,00)
+        let loginMode = 'completo'; // 'completo' (email/senha) ou 'pin' (apenas pin rápido)
+
+        // Inicialização do App
+        document.addEventListener("DOMContentLoaded", () => {
+            verificarStatusAutenticacao();
         });
-    }
 
-    function enviarDados() {
-      var ganhos = document.getElementById('ganhos-input').value;
-      var gastos = document.getElementById('gastos-input').value;
-      
-      if (!ganhos) { alert('Insira pelo menos o ganho do app!'); return; }
-      if (!gastos) gastos = 0;
-      
-      var btn = document.getElementById('btn-salvar');
-      btn.innerText = "Salvando...";
-      btn.disabled = true;
-      
-      // Ajustado o formato para URLSearchParams para o Apps Script processar sem travar no CORS de fora do domínio Google
-      const formData = new URLSearchParams();
-      formData.append('ganhos', ganhos);
-      formData.append('gastos', gastos);
+        // Controla o tipo de login que vai aparecer
+        function verificarStatusAutenticacao() {
+            const usuarioSalvo = localStorage.getItem('movvo_user');
+            const wrapper = document.getElementById('inputs-wrapper');
+            
+            if (usuarioSalvo) {
+                // Usuário já conhecido, pede apenas o PIN rápido de 4 dígitos
+                loginMode = 'pin';
+                document.getElementById('login-title').innerText = "Bloqueio de Tela";
+                document.getElementById('login-subtitle').innerText = `Olá, ${usuarioSalvo}. Digite seu PIN de 4 dígitos para acessar.`;
+                document.getElementById('btn-acao-login').innerText = "Desbloquear";
+                
+                wrapper.innerHTML = `
+                    <div class="input-group">
+                        <label>PIN de Acesso</label>
+                        <input type="password" id="login-pin" maxlength="4" pattern="\\d*" inputmode="numeric" placeholder="****" autofocus>
+                    </div>
+                `;
+                document.getElementById('login-overlay').style.display = 'flex';
+            } else {
+                // Primeiro acesso: pede e-mail e senha cadastrados
+                loginMode = 'completo';
+                document.getElementById('login-title').innerText = "Entrar no MOVVO";
+                document.getElementById('login-subtitle').innerText = "Insira seu e-mail e senha cadastrados na planilha.";
+                document.getElementById('btn-acao-login').innerText = "Entrar";
+                
+                wrapper.innerHTML = `
+                    <div class="input-group">
+                        <label>E-mail</label>
+                        <input type="email" id="login-email" placeholder="seu@email.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Senha</label>
+                        <input type="password" id="login-senha" placeholder="Sua senha" required>
+                    </div>
+                `;
+                document.getElementById('login-overlay').style.display = 'flex';
+            }
+        }
 
-      fetch(API_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: JSON.stringify({ ganhos: ganhos, gastos: gastos })
-      })
-      .then(() => {
-        // Aguarda 1.5 segundos para a API do Planilhas processar a nova linha e atualiza o painel na tela
-        setTimeout(() => {
-          carregarTotais();
-          document.getElementById('ganhos-input').value = '';
-          document.getElementById('gastos-input').value = '';
-          btn.innerText = "Salvar o Corre";
-          btn.disabled = false;
-        }, 1500);
-      })
-      .catch(err => {
-        alert("Erro ao salvar dados");
-        btn.innerText = "Salvar o Corre";
-        btn.disabled = false;
-      });
-    }
-  </script>
+        // Executa a chamada de login no Apps Script
+        function executarAutenticacao() {
+            document.getElementById('btn-acao-login').innerText = "Validando... 🕒";
+            document.getElementById('btn-acao-login').disabled = true;
+
+            let urlValidacao = "";
+            
+            if (loginMode === 'completo') {
+                const email = document.getElementById('login-email').value;
+                const senha = document.getElementById('login-senha').value;
+                urlValidacao = `${API_URL}?acao=login&email=${encodeURIComponent(email)}&senha=${encodeURIComponent(senha)}`;
+            } else {
+                const email = localStorage.getItem('movvo_user');
+                const pin = document.getElementById('login-pin').value;
+                urlValidacao = `${API_URL}?acao=validar_pin&email=${encodeURIComponent(email)}&pin=${encodeURIComponent(pin)}`;
+            }
+
+            fetch(urlValidacao)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.sucesso) {
+                        if (loginMode === 'completo') {
+                            localStorage.setItem('movvo_user', data.usuario);
+                        }
+                        
+                        // Esconde tela de login e libera o App
+                        document.getElementById('login-overlay').style.display = 'none';
+                        document.getElementById('txt-welcome').innerText = `Painel: ${localStorage.getItem('movvo_user')}`;
+                        
+                        acionarIsland("Acesso Liberado! 🔑");
+                        carregarTotais();
+                    } else {
+                        alert(data.erro || "Falha na autenticação.");
+                        document.getElementById('btn-acao-login').disabled = false;
+                        verificarStatusAutenticacao();
+                    }
+                })
+                .catch(err => {
+                    alert("Erro ao conectar ao servidor de login.");
+                    document.getElementById('btn-acao-login').disabled = false;
+                    verificarStatusAutenticacao();
+                });
+        }
+
+        function做Logout() {
+            if(confirm("Deseja sair da sua conta? Você precisará fazer login com e-mail e senha novamente.")) {
+                localStorage.clear();
+                verificarStatusAutenticacao();
+            }
+        }
+
+        // Busca os faturamentos privados do banco
+        function carregarTotais() {
+            const usuarioLogado = localStorage.getItem('movvo_user') || '';
+            if (!usuarioLogado) return;
+
+            fetch(`${API_URL}?usuario=${encodeURIComponent(usuarioLogado)}`)
+                .then(response => response.json())
+                .then(totais => {
+                    document.getElementById("ganhos-total").innerText = formatarMoeda(totais.ganhos);
+                    document.getElementById("gastos-total").innerText = formatarMoeda(totais.gastos);
+                    
+                    const lucroElement = document.getElementById("lucro-total");
+                    lucroElement.innerText = formatarMoeda(totais.lucro);
+                    
+                    if(totais.lucro >= 0) {
+                        lucroElement.className = "value positivo";
+                    } else {
+                        lucroElement.className = "value negativo";
+                    }
+                    
+                    fecharIsland("Painel Atualizado ⚡");
+                })
+                .catch(error => {
+                    acionarIsland("Erro ao carregar dados ❌");
+                    console.error("Erro:", error);
+                });
+        }
+
+        // Envia o novo registro salvando quem enviou
+        function processarEnvioCorre() {
+            if (currentInputValue === 0) {
+                acionarIsland("Digite um valor válido! ⚠️");
+                return;
+            }
+
+            let valorFinal = currentInputValue / 100;
+            let ganhos = currentFluxo === 'ganho' ? valorFinal : 0;
+            let gastos = currentFluxo === 'gasto' ? valorFinal : 0;
+            const usuarioLogado = localStorage.getItem('movvo_user') || 'Anônimo';
+
+            acionarIsland("Registrando Corre... ⚡");
+
+            fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: JSON.stringify({ ganhos: ganhos, gastos: gastos, usuario: usuarioLogado })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    if (currentFluxo === 'ganho') {
+                        confetti({ particleCount: 80, spread: 60, origin: { y: 0.8 } });
+                    }
+                    currentInputValue = 0;
+                    atualizarDisplay();
+                    carregarTotais();
+                } else {
+                    acionarIsland("Erro ao salvar dados ❌");
+                }
+            })
+            .catch(error => {
+                acionarIsland("Erro na conexão ❌");
+                console.error("Erro:", error);
+            });
+        }
+
+        // Gerenciamento do Teclado Numérico
+        function digitar(num) {
+            if (num === 'C') {
+                currentInputValue = 0;
+            } else {
+                if (currentInputValue.toString().length >= 8) return; 
+                currentInputValue = (currentInputValue * 10) + num;
+            }
+            atualizarDisplay();
+        }
+
+        function atualizarDisplay() {
+            document.getElementById("valor-display").innerText = formatarMoeda(currentInputValue / 100);
+        }
+
+        function mudarFluxo(tipo, elemento) {
+            currentFluxo = tipo;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'ganho', 'gasto'));
+            elemento.classList.add('active', tipo);
+        }
+
+        function formatarMoeda(valor) {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // Animações da Dynamic Island
+        function acionarIsland(texto) {
+            const island = document.getElementById("island");
+            const islandText = document.getElementById("island-text");
+            island.classList.add("expanded");
+            islandText.innerText = texto;
+        }
+
+        function fecharIsland(textoFinal) {
+            const island = document.getElementById("island");
+            const islandText = document.getElementById("island-text");
+            islandText.innerText = textoFinal;
+            setTimeout(() => {
+                island.classList.remove("expanded");
+            }, 2000);
+        }
+    </script>
 </body>
 </html>
