@@ -3,606 +3,1079 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOVVO - Seu Corre Privado</title>
+    <title>MOVVO</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
         :root {
-            --bg-color: #0b0f19;
-            --card-bg: #151d30;
-            --text-color: #f3f4f6;
-            --accent-color: #3b82f6;
-            --island-bg: rgba(21, 29, 48, 0.85);
+            --bg:        #080c14;
+            --surface:   #0f1522;
+            --card:      #131b2e;
+            --border:    rgba(255,255,255,0.06);
+            --text:      #f0f2f7;
+            --muted:     #5a6480;
+            --accent:    #3d7eff;
+            --green:     #00d68f;
+            --red:       #ff4d6d;
+            --glow-green: 0 0 28px rgba(0,214,143,0.35);
+            --glow-red:   0 0 28px rgba(255,77,109,0.30);
+            --glow-blue:  0 0 28px rgba(61,126,255,0.30);
+            --radius:    20px;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
-            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom) 20px;
+            padding: 0 16px 40px;
             overflow-x: hidden;
         }
 
-        /* --- TELA DE LOGIN OVERLAY --- */
+        /* ── PRIVACY BLUR ── */
+        body.privacy .blur-target { filter: blur(12px); user-select: none; }
+
+        /* ── LOGIN ── */
         #login-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: var(--bg-color);
+            position: fixed; inset: 0;
+            background: var(--bg);
             z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 30px;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 24px;
+        }
+        #login-overlay.hidden { display: none; }
+
+        .login-logo {
+            font-size: 32px; font-weight: 900;
+            letter-spacing: -1px;
+            margin-bottom: 32px;
+            background: linear-gradient(135deg, #3d7eff, #00d68f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .login-card {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 24px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.05);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 32px 28px;
+            width: 100%; max-width: 390px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.5);
         }
 
-        .login-card h2 {
-            margin-bottom: 10px;
-            font-size: 24px;
-        }
+        .login-card h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+        .login-card p  { color: var(--muted); font-size: 14px; margin-bottom: 28px; line-height: 1.5; }
 
-        .login-card p {
-            color: #9ca3af;
-            font-size: 14px;
-            margin-bottom: 25px;
+        .field { margin-bottom: 16px; }
+        .field label {
+            display: block; font-size: 11px; font-weight: 600;
+            color: var(--muted); text-transform: uppercase;
+            letter-spacing: 0.8px; margin-bottom: 8px;
         }
-
-        .input-group {
-            margin-bottom: 15px;
-            text-align: left;
+        .field input {
+            width: 100%; background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 15px 16px; border-radius: 14px;
+            color: var(--text); font-size: 16px;
+            font-family: inherit; outline: none;
+            transition: border-color 0.2s;
         }
+        .field input:focus { border-color: var(--accent); }
 
-        .input-group label {
-            display: block;
-            font-size: 12px;
-            color: #9ca3af;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        /* PIN grid */
+        .pin-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 12px; margin-bottom: 28px;
         }
-
-        .input-group input {
-            width: 100%;
-            background: rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 14px;
-            border-radius: 12px;
-            color: #fff;
-            font-size: 16px;
-            outline: none;
-            transition: 0.2s;
+        .pin-dot {
+            aspect-ratio: 1; border-radius: 12px;
+            background: var(--surface); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; color: var(--muted);
+            transition: all 0.15s;
         }
+        .pin-dot.filled { background: var(--accent); border-color: var(--accent); color: white; }
 
-        .input-group input:focus {
-            border-color: var(--accent-color);
+        .btn-primary {
+            width: 100%; background: var(--accent);
+            color: white; border: none;
+            padding: 16px; border-radius: 14px;
+            font-size: 16px; font-weight: 700;
+            font-family: inherit; cursor: pointer;
+            transition: opacity 0.15s, transform 0.1s;
+            box-shadow: var(--glow-blue);
         }
+        .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .btn-login {
-            width: 100%;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: 0.2s;
+        /* Mini teclado PIN */
+        .pin-keyboard {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 10px; margin-bottom: 20px;
         }
-
-        .btn-login:active {
-            transform: scale(0.98);
+        .pkey {
+            background: var(--surface); border: 1px solid var(--border);
+            color: var(--text); font-size: 22px; font-weight: 600;
+            border-radius: 14px; height: 58px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; user-select: none;
+            transition: background 0.1s;
         }
+        .pkey:active { background: rgba(61,126,255,0.2); }
+        .pkey.del { font-size: 18px; color: var(--muted); }
 
-        .logout-btn {
-            background: transparent;
-            color: #ef4444;
-            border: 1px solid #ef4444;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-
-        /* --- DYNAMIC ISLAND (NOTIFICAÇÕES) --- */
-        .dynamic-island-container {
-            position: fixed;
-            top: 20px;
-            left: 50%;
+        /* ── DYNAMIC ISLAND ── */
+        .island-wrap {
+            position: fixed; top: 16px; left: 50%;
             transform: translateX(-50%);
-            z-index: 1000;
-            pointer-events: none;
+            z-index: 1000; pointer-events: none;
         }
-
-        .dynamic-island {
-            background-color: var(--island-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 25px;
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 180px;
-            max-width: 320px;
-            height: 40px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .dynamic-island.expanded {
-            border-radius: 20px;
-            padding: 15px 25px;
-            height: auto;
-            min-width: 260px;
-        }
-
-        .island-content {
-            font-size: 14px;
-            font-weight: 500;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* --- INTERFACE PRINCIPAL --- */
-        header {
-            width: 100%;
-            max-width: 480px;
-            margin-top: 70px;
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        header h1 {
-            font-size: 26px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .dashboard {
-            width: 100%;
-            max-width: 480px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
+        .island {
+            background: rgba(15,21,34,0.92);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.09);
             border-radius: 24px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 10px 20px;
+            min-width: 160px; max-width: 300px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+            overflow: hidden;
         }
+        .island.expanded { height: auto; border-radius: 18px; padding: 14px 22px; }
+        .island span { font-size: 13px; font-weight: 600; white-space: nowrap; }
 
-        .card.full-width {
-            grid-column: span 2;
-            align-items: center;
-            padding: 25px;
-            background: linear-gradient(135deg, #151d30 0%, #1e2942 100%);
-        }
-
-        .card h3 {
-            font-size: 13px;
-            text-transform: uppercase;
-            color: #9ca3af;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-
-        .card .value {
-            font-size: 22px;
-            font-weight: 700;
-        }
-
-        .card.full-width .value {
-            font-size: 36px;
-            margin-top: 5px;
-        }
-
-        .positivo { color: #10b981; }
-        .negativo { color: #ef4444; }
-
-        /* --- TECLADO E FLUXO DE ENTRADA --- */
-        .input-container {
-            width: 100%;
-            max-width: 480px;
-            background-color: var(--card-bg);
-            border-radius: 32px;
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            border: 1px solid rgba(255, 255, 255, 0.03);
-        }
-
-        .tab-menu {
-            display: flex;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 100px;
-            padding: 4px;
-            width: 100%;
+        /* ── HEADER ── */
+        header {
+            width: 100%; max-width: 480px;
+            margin-top: 72px;
+            display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px;
         }
+        .header-left h1 {
+            font-size: 24px; font-weight: 900; letter-spacing: -0.5px;
+            background: linear-gradient(135deg,#3d7eff,#00d68f);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .header-left p { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
-        .tab-btn {
-            flex: 1;
-            background: none;
-            border: none;
-            color: #9ca3af;
-            padding: 12px;
-            font-size: 15px;
-            font-weight: 600;
-            border-radius: 100px;
-            cursor: pointer;
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+
+        .icon-btn {
+            background: var(--card); border: 1px solid var(--border);
+            color: var(--muted); width: 38px; height: 38px;
+            border-radius: 12px; display: flex;
+            align-items: center; justify-content: center;
+            cursor: pointer; font-size: 16px;
             transition: all 0.2s;
         }
+        .icon-btn:active { transform: scale(0.93); }
+        .icon-btn.active { color: var(--accent); border-color: var(--accent); }
 
-        .tab-btn.active.ganho {
-            background-color: #10b981;
-            color: white;
+        .btn-logout {
+            background: transparent; color: var(--red);
+            border: 1px solid rgba(255,77,109,0.35);
+            padding: 6px 14px; border-radius: 20px;
+            font-size: 12px; font-weight: 600;
+            font-family: inherit; cursor: pointer;
         }
 
-        .tab-btn.active.gasto {
-            background-color: #ef4444;
-            color: white;
+        /* ── DASHBOARD ── */
+        .dashboard {
+            width: 100%; max-width: 480px;
+            display: flex; flex-direction: column;
+            gap: 12px; margin-bottom: 16px;
+        }
+
+        /* Card de Lucro Principal */
+        .card-lucro {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            text-align: center;
+            transition: box-shadow 0.6s, border-color 0.6s;
+            position: relative; overflow: hidden;
+        }
+        .card-lucro::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse at 50% 0%, rgba(61,126,255,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .card-lucro.meta-atingida {
+            border-color: rgba(0,214,143,0.4);
+            box-shadow: var(--glow-green);
+        }
+        .card-lucro.meta-atingida::before {
+            background: radial-gradient(ellipse at 50% 0%, rgba(0,214,143,0.12) 0%, transparent 70%);
+        }
+
+        .lucro-label {
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--muted); margin-bottom: 4px;
+        }
+        .lucro-valor {
+            font-size: 44px; font-weight: 900; letter-spacing: -2px;
+            line-height: 1; transition: color 0.4s;
+        }
+        .lucro-valor.pos { color: var(--green); }
+        .lucro-valor.neg { color: var(--red); }
+
+        /* Barra de meta */
+        .meta-bar-wrap { margin-top: 16px; }
+        .meta-bar-label {
+            display: flex; justify-content: space-between;
+            font-size: 11px; color: var(--muted); margin-bottom: 6px;
+        }
+        .meta-bar-bg {
+            height: 4px; background: rgba(255,255,255,0.06);
+            border-radius: 99px; overflow: hidden;
+        }
+        .meta-bar-fill {
+            height: 100%; background: var(--green);
+            border-radius: 99px;
+            transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 0 0 8px rgba(0,214,143,0.6);
+        }
+
+        /* Cards secundários */
+        .cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .card-mini {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 18px;
+        }
+        .card-mini h3 {
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.8px; color: var(--muted); margin-bottom: 8px;
+        }
+        .card-mini .val {
+            font-size: 22px; font-weight: 800; letter-spacing: -0.5px;
+        }
+        .val.pos { color: var(--green); }
+        .val.neg { color: var(--red); }
+
+        /* Timer */
+        .card-timer {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 16px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .timer-info { display: flex; flex-direction: column; gap: 2px; }
+        .timer-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
+        .timer-val { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+        .timer-cost { font-size: 12px; color: var(--muted); }
+
+        .btn-timer {
+            background: var(--surface); border: 1px solid var(--border);
+            color: var(--text); padding: 10px 18px;
+            border-radius: 12px; font-size: 14px; font-weight: 700;
+            font-family: inherit; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-timer.running {
+            background: rgba(255,77,109,0.15);
+            border-color: rgba(255,77,109,0.4);
+            color: var(--red);
+        }
+
+        /* ── ATALHOS ── */
+        .shortcuts-wrap {
+            width: 100%; max-width: 480px;
+            margin-bottom: 16px;
+        }
+        .shortcuts-label {
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.8px; color: var(--muted);
+            margin-bottom: 10px; padding-left: 4px;
+        }
+        .shortcuts {
+            display: flex; gap: 8px; overflow-x: auto;
+            padding-bottom: 4px; scrollbar-width: none;
+        }
+        .shortcuts::-webkit-scrollbar { display: none; }
+        .shortcut-btn {
+            background: var(--card); border: 1px solid var(--border);
+            color: var(--text); white-space: nowrap;
+            padding: 10px 16px; border-radius: 12px;
+            font-size: 13px; font-weight: 600; font-family: inherit;
+            cursor: pointer; flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .shortcut-btn:active { background: rgba(255,77,109,0.15); border-color: var(--red); }
+
+        /* ── INPUT CONTAINER ── */
+        .input-container {
+            width: 100%; max-width: 480px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 28px; padding: 24px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .tabs {
+            display: flex; background: rgba(0,0,0,0.25);
+            border-radius: 99px; padding: 4px;
+            width: 100%; margin-bottom: 20px; gap: 4px;
+        }
+        .tab {
+            flex: 1; background: none; border: none;
+            color: var(--muted); padding: 12px;
+            font-size: 14px; font-weight: 700;
+            font-family: inherit; border-radius: 99px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .tab.on-ganho  { background: var(--green); color: #000; }
+        .tab.on-gasto  { background: var(--red);   color: white; }
+
+        /* Voz */
+        .voice-btn {
+            width: 100%; margin-bottom: 16px;
+            background: var(--surface); border: 1px solid var(--border);
+            color: var(--muted); padding: 12px;
+            border-radius: 14px; font-size: 14px; font-weight: 600;
+            font-family: inherit; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: all 0.2s;
+        }
+        .voice-btn.listening {
+            background: rgba(255,77,109,0.12);
+            border-color: rgba(255,77,109,0.4);
+            color: var(--red);
         }
 
         .display {
-            font-size: 42px;
-            font-weight: 700;
-            margin-bottom: 25px;
-            height: 55px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 46px; font-weight: 900; letter-spacing: -2px;
+            margin-bottom: 24px; height: 56px;
+            display: flex; align-items: center; justify-content: center;
+            font-variant-numeric: tabular-nums;
+            transition: color 0.2s;
         }
+        .display.ganho { color: var(--green); }
+        .display.gasto { color: var(--red); }
 
         .keyboard {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            width: 100%;
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 12px; width: 100%;
         }
-
         .key {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.02);
-            color: var(--text-color);
-            font-size: 24px;
-            font-weight: 600;
-            border-radius: 100px;
-            height: 65px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            user-select: none;
-            transition: background 0.1s;
+            background: var(--surface); border: 1px solid var(--border);
+            color: var(--text); font-size: 24px; font-weight: 700;
+            font-family: inherit; border-radius: 99px; height: 64px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; user-select: none;
+            transition: background 0.1s, transform 0.1s;
         }
-
-        .key:active {
-            background: rgba(255, 255, 255, 0.12);
-        }
-
-        .key.action {
-            background: var(--accent-color);
+        .key:active { background: rgba(255,255,255,0.1); transform: scale(0.96); }
+        .key.confirm {
+            background: var(--accent);
             color: white;
+            box-shadow: var(--glow-blue);
         }
-        .key.action:active {
-            background: #2563eb;
+        .key.confirm:active { background: #2563eb; }
+
+        /* ── GPS / COPILOTO ── */
+        .copiloto-wrap {
+            width: 100%; max-width: 480px;
+            margin-top: 16px;
         }
+        .copiloto-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px; padding: 0 4px;
+        }
+        .copiloto-header span {
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.8px; color: var(--muted);
+        }
+
+        .gps-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .gps-btn {
+            background: var(--card); border: 1px solid var(--border);
+            color: var(--text); padding: 14px 16px;
+            border-radius: 16px; font-size: 13px; font-weight: 600;
+            font-family: inherit; cursor: pointer;
+            display: flex; align-items: center; gap: 10px;
+            transition: all 0.15s;
+        }
+        .gps-btn:active { background: rgba(61,126,255,0.15); border-color: var(--accent); }
+        .gps-icon { font-size: 20px; }
+
+        /* ── MOTIVACIONAL ── */
+        .motivacional {
+            width: 100%; max-width: 480px;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 14px 18px;
+            margin-top: 16px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .motivacional .emoji { font-size: 22px; }
+        .motivacional p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+        .motivacional p strong { color: var(--text); }
+
+        /* ── HISTÓRICO ── */
+        .historico-wrap {
+            width: 100%; max-width: 480px;
+            margin-top: 16px;
+        }
+        .historico-header {
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.8px; color: var(--muted);
+            margin-bottom: 10px; padding: 0 4px;
+        }
+        .historico-list { display: flex; flex-direction: column; gap: 8px; }
+        .hist-item {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px 16px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .hist-data { font-size: 13px; color: var(--muted); }
+        .hist-lucro { font-size: 16px; font-weight: 800; }
+
+        /* Scrollbar global */
+        ::-webkit-scrollbar { width: 0; }
     </style>
 </head>
 <body>
 
-    <div id="login-overlay">
-        <div class="login-card" id="login-form-container">
-            <h2 id="login-title">Entrar no MOVVO</h2>
-            <p id="login-subtitle">Por favor, insira suas credenciais para acessar seu painel.</p>
-            
-            <div id="inputs-wrapper">
-                </div>
-            
-            <button class="btn-login" onclick="executarAutenticacao()" id="btn-acao-login">Entrar</button>
+<!-- ── LOGIN OVERLAY ── -->
+<div id="login-overlay">
+    <div class="login-logo">MOVVO</div>
+    <div class="login-card">
+        <h2 id="login-title">Entrar</h2>
+        <p id="login-subtitle">Insira suas credenciais para acessar seu painel privado.</p>
+        <div id="login-body"></div>
+    </div>
+</div>
+
+<!-- ── DYNAMIC ISLAND ── -->
+<div class="island-wrap">
+    <div class="island" id="island">
+        <span id="island-txt">MOVVO</span>
+    </div>
+</div>
+
+<!-- ── HEADER ── -->
+<header>
+    <div class="header-left">
+        <h1>MOVVO</h1>
+        <p id="txt-welcome">Carregando...</p>
+    </div>
+    <div class="header-actions">
+        <div class="icon-btn" id="privacy-btn" onclick="togglePrivacy()" title="Modo privacidade">👁</div>
+        <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+    </div>
+</header>
+
+<!-- ── DASHBOARD ── -->
+<div class="dashboard">
+
+    <!-- Card lucro principal -->
+    <div class="card-lucro" id="card-lucro">
+        <div class="lucro-label" id="lucro-data-label">Lucro de hoje</div>
+        <div class="lucro-valor blur-target" id="lucro-total">R$ 0,00</div>
+        <div class="meta-bar-wrap">
+            <div class="meta-bar-label">
+                <span>Meta diária</span>
+                <span id="meta-label">R$ 0,00 / R$ 200,00</span>
+            </div>
+            <div class="meta-bar-bg">
+                <div class="meta-bar-fill" id="meta-bar" style="width:0%"></div>
+            </div>
         </div>
     </div>
 
-    <div class="dynamic-island-container">
-        <div class="dynamic-island" id="island">
-            <div class="island-content" id="island-text">Buscando totais... 🕒</div>
-        </div>
-    </div>
-
-    <header>
-        <div>
-            <h1>MOVVO</h1>
-            <p style="font-size: 12px; color: #9ca3af;" id="txt-welcome">Painel Privado</p>
-        </div>
-        <button class="logout-btn" onclick="fazerLogout()">Sair</button>
-    </header>
-
-    <div class="dashboard">
-        <div class="card full-width">
-            <h3>Lucro do Dia</h3>
-            <div class="value" id="lucro-total">R$ 0,00</div>
-        </div>
-        <div class="card">
+    <!-- Ganhos e Gastos -->
+    <div class="cards-row">
+        <div class="card-mini">
             <h3>Faturamento</h3>
-            <div class="value positivo" id="ganhos-total">R$ 0,00</div>
+            <div class="val pos blur-target" id="ganhos-total">R$ 0,00</div>
         </div>
-        <div class="card">
+        <div class="card-mini">
             <h3>Gastos</h3>
-            <div class="value negativo" id="gastos-total">R$ 0,00</div>
+            <div class="val neg blur-target" id="gastos-total">R$ 0,00</div>
         </div>
     </div>
 
-    <div class="input-container">
-        <div class="tab-menu">
-            <button class="tab-btn active ganho" onclick="mudarFluxo('ganho', this)">Faturamento</button>
-            <button class="tab-btn gasto" onclick="mudarFluxo('gasto', this)">Gasto</button>
+    <!-- Timer de custo/hora -->
+    <div class="card-timer">
+        <div class="timer-info">
+            <span class="timer-label">⏱ Custo / Hora</span>
+            <span class="timer-val" id="timer-display">00:00:00</span>
+            <span class="timer-cost" id="timer-cost">R$ 0,00 / h hoje</span>
         </div>
-
-        <div class="display" id="valor-display">R$ 0,00</div>
-
-        <div class="keyboard">
-            <div class="key" onclick="digitar(1)">1</div>
-            <div class="key" onclick="digitar(2)">2</div>
-            <div class="key" onclick="digitar(3)">3</div>
-            <div class="key" onclick="digitar(4)">4</div>
-            <div class="key" onclick="digitar(5)">5</div>
-            <div class="key" onclick="digitar(6)">6</div>
-            <div class="key" onclick="digitar(7)">7</div>
-            <div class="key" onclick="digitar(8)">8</div>
-            <div class="key" onclick="digitar(9)">9</div>
-            <div class="key" onclick="digitar('C')">C</div>
-            <div class="key" onclick="digitar(0)">0</div>
-            <div class="key action" onclick="processarEnvioCorre()">✓</div>
-        </div>
+        <button class="btn-timer" id="btn-timer" onclick="toggleTimer()">Iniciar</button>
     </div>
 
-    <script>
-        // CONFIGURAÇÃO: Sua URL do Google Apps Script fornecida
-        const API_URL = "https://script.google.com/macros/s/AKfycbwistQ1bMOM34Z5_Ikfm2laBYXnW3Wms_Al6IrVJy9pn5oclQQKihwcPiCkGl6LmjjbiA/exec";
+</div>
 
-        let currentFluxo = 'ganho';
-        let currentInputValue = 0; // Guardado em centavos (ex: 1500 = R$ 15,00)
-        let loginMode = 'completo'; // 'completo' (email/senha) ou 'pin' (apenas pin rápido)
+<!-- ── ATALHOS DE GASTO ── -->
+<div class="shortcuts-wrap" id="shortcuts-wrap">
+    <div class="shortcuts-label">Atalhos de Gasto</div>
+    <div class="shortcuts">
+        <button class="shortcut-btn" onclick="atalhoGasto(5000)">⛽ R$50 Combustível</button>
+        <button class="shortcut-btn" onclick="atalhoGasto(2500)">🍽 R$25 Almoço</button>
+        <button class="shortcut-btn" onclick="atalhoGasto(1500)">☕ R$15 Café</button>
+        <button class="shortcut-btn" onclick="atalhoGasto(1000)">🅿️ R$10 Estacionamento</button>
+        <button class="shortcut-btn" onclick="atalhoGasto(3000)">🔧 R$30 Manutenção</button>
+    </div>
+</div>
 
-        // Inicialização do App
-        document.addEventListener("DOMContentLoaded", () => {
-            verificarStatusAutenticacao();
+<!-- ── TECLADO ── -->
+<div class="input-container">
+
+    <div class="tabs">
+        <button class="tab on-ganho" id="tab-ganho" onclick="mudarFluxo('ganho')">Faturamento</button>
+        <button class="tab" id="tab-gasto" onclick="mudarFluxo('gasto')">Gasto</button>
+    </div>
+
+    <button class="voice-btn" id="voice-btn" onclick="toggleVoz()">
+        <span>🎙</span>
+        <span id="voice-label">Registrar por voz</span>
+    </button>
+
+    <div class="display ganho" id="valor-display">R$ 0,00</div>
+
+    <div class="keyboard">
+        <div class="key" onclick="digitar(1)">1</div>
+        <div class="key" onclick="digitar(2)">2</div>
+        <div class="key" onclick="digitar(3)">3</div>
+        <div class="key" onclick="digitar(4)">4</div>
+        <div class="key" onclick="digitar(5)">5</div>
+        <div class="key" onclick="digitar(6)">6</div>
+        <div class="key" onclick="digitar(7)">7</div>
+        <div class="key" onclick="digitar(8)">8</div>
+        <div class="key" onclick="digitar(9)">9</div>
+        <div class="key" onclick="digitar('C')">C</div>
+        <div class="key" onclick="digitar(0)">0</div>
+        <div class="key confirm" onclick="processarEnvio()">✓</div>
+    </div>
+
+</div>
+
+<!-- ── COPILOTO GPS ── -->
+<div class="copiloto-wrap">
+    <div class="copiloto-header">
+        <span>🧭 Copiloto</span>
+    </div>
+    <div class="gps-btns">
+        <button class="gps-btn" onclick="irAbastecer()">
+            <span class="gps-icon">⛽</span>
+            <div>
+                <div style="font-size:13px;font-weight:700">Abastecer</div>
+                <div style="font-size:11px;color:var(--muted)">Postos próximos</div>
+            </div>
+        </button>
+        <button class="gps-btn" onclick="irParaBase()">
+            <span class="gps-icon">🏠</span>
+            <div>
+                <div style="font-size:13px;font-weight:700">Ir pra Base</div>
+                <div style="font-size:11px;color:var(--muted)">Rota para casa</div>
+            </div>
+        </button>
+        <button class="gps-btn" onclick="abrirWaze()">
+            <span class="gps-icon">🗺</span>
+            <div>
+                <div style="font-size:13px;font-weight:700">Waze</div>
+                <div style="font-size:11px;color:var(--muted)">Abrir navegação</div>
+            </div>
+        </button>
+        <button class="gps-btn" onclick="abrirGoogleMaps()">
+            <span class="gps-icon">📍</span>
+            <div>
+                <div style="font-size:13px;font-weight:700">Google Maps</div>
+                <div style="font-size:11px;color:var(--muted)">Ver mapa</div>
+            </div>
+        </button>
+    </div>
+</div>
+
+<!-- ── MENSAGEM MOTIVACIONAL ── -->
+<div class="motivacional" id="motivacional">
+    <span class="emoji" id="motiv-emoji">💡</span>
+    <p id="motiv-text"><strong>Carregando...</strong></p>
+</div>
+
+<!-- ── HISTÓRICO ── -->
+<div class="historico-wrap" id="historico-wrap" style="display:none">
+    <div class="historico-header">Últimos 7 dias</div>
+    <div class="historico-list" id="historico-list"></div>
+</div>
+
+
+<script>
+// ── CONFIG ──
+const API_URL = "https://script.google.com/macros/s/AKfycbwOfnzT0rPH6HJsYn5C3wdYbyOnev8JC10k5H2V2025ksDP5cqKMmwvGNiw4N23UJfkhg/exec";
+
+// ── ESTADO ──
+let fluxo        = 'ganho';
+let inputVal     = 0; // centavos
+let metaDiaria   = 200;
+let timerInterval= null;
+let timerAtivo   = false;
+let timerInicio  = null;
+let timerSegundos= 0;
+let gastosHoje   = 0;
+let loginMode    = 'completo';
+let pinDigitado  = '';
+let recognizing  = false;
+let recognition  = null;
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+    mostrarMensagemMotivacional();
+    verificarAuth();
+});
+
+// ══════════════════════════════════════════════
+//  AUTENTICAÇÃO
+// ══════════════════════════════════════════════
+
+function verificarAuth() {
+    const usuario = localStorage.getItem('movvo_user');
+    const wrapper = document.getElementById('login-body');
+
+    if (usuario) {
+        loginMode = 'pin';
+        pinDigitado = '';
+        document.getElementById('login-title').innerText = 'Bloqueio Rápido';
+        document.getElementById('login-subtitle').innerText = `Olá, ${usuario}. Digite seu PIN para entrar.`;
+
+        wrapper.innerHTML = `
+            <div class="pin-grid">
+                <div class="pin-dot" id="pd0">•</div>
+                <div class="pin-dot" id="pd1">•</div>
+                <div class="pin-dot" id="pd2">•</div>
+                <div class="pin-dot" id="pd3">•</div>
+            </div>
+            <div class="pin-keyboard">
+                ${[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map(k =>
+                    k === ''
+                    ? `<div></div>`
+                    : `<div class="pkey ${k==='⌫'?'del':''}" onclick="digitarPin('${k}')">${k}</div>`
+                ).join('')}
+            </div>
+        `;
+    } else {
+        loginMode = 'completo';
+        document.getElementById('login-title').innerText = 'Entrar no MOVVO';
+        document.getElementById('login-subtitle').innerText = 'Insira seu e-mail e senha cadastrados.';
+
+        wrapper.innerHTML = `
+            <div class="field">
+                <label>E-mail</label>
+                <input type="email" id="login-email" placeholder="seu@email.com" inputmode="email">
+            </div>
+            <div class="field">
+                <label>Senha</label>
+                <input type="password" id="login-senha" placeholder="Sua senha">
+            </div>
+            <button class="btn-primary" onclick="fazerLogin()" id="btn-login">Entrar</button>
+        `;
+
+        document.getElementById('login-senha').addEventListener('keydown', e => {
+            if (e.key === 'Enter') fazerLogin();
         });
+    }
+}
 
-        // Controla o tipo de login que vai aparecer
-        function verificarStatusAutenticacao() {
-            const usuarioSalvo = localStorage.getItem('movvo_user');
-            const wrapper = document.getElementById('inputs-wrapper');
-            
-            if (usuarioSalvo) {
-                // Usuário já conhecido, pede apenas o PIN rápido de 4 dígitos
-                loginMode = 'pin';
-                document.getElementById('login-title').innerText = "Bloqueio de Tela";
-                document.getElementById('login-subtitle').innerText = `Olá, ${usuarioSalvo}. Digite seu PIN de 4 dígitos para acessar.`;
-                document.getElementById('btn-acao-login').innerText = "Desbloquear";
-                
-                wrapper.innerHTML = `
-                    <div class="input-group">
-                        <label>PIN de Acesso</label>
-                        <input type="password" id="login-pin" maxlength="4" pattern="\\d*" inputmode="numeric" placeholder="****" autofocus>
-                    </div>
-                `;
-                document.getElementById('login-overlay').style.display = 'flex';
+function digitarPin(tecla) {
+    if (tecla === '⌫') {
+        pinDigitado = pinDigitado.slice(0, -1);
+    } else if (pinDigitado.length < 4) {
+        pinDigitado += tecla;
+    }
+    // Atualiza visual
+    for (let i = 0; i < 4; i++) {
+        const dot = document.getElementById('pd' + i);
+        if (!dot) continue;
+        if (i < pinDigitado.length) {
+            dot.classList.add('filled'); dot.innerText = '●';
+        } else {
+            dot.classList.remove('filled'); dot.innerText = '•';
+        }
+    }
+    if (pinDigitado.length === 4) {
+        setTimeout(validarPin, 150);
+    }
+}
+
+function validarPin() {
+    const email = localStorage.getItem('movvo_user');
+    island('Verificando PIN... 🔒');
+    fetch(`${API_URL}?acao=validar_pin&email=${enc(email)}&pin=${enc(pinDigitado)}`)
+        .then(r => r.json())
+        .then(d => {
+            if (d.sucesso) {
+                entrarNoApp(d.usuario || email);
             } else {
-                // Primeiro acesso: pede e-mail e senha cadastrados
-                loginMode = 'completo';
-                document.getElementById('login-title').innerText = "Entrar no MOVVO";
-                document.getElementById('login-subtitle').innerText = "Insira seu e-mail e senha cadastrados na planilha.";
-                document.getElementById('btn-acao-login').innerText = "Entrar";
-                
-                wrapper.innerHTML = `
-                    <div class="input-group">
-                        <label>E-mail</label>
-                        <input type="email" id="login-email" placeholder="seu@email.com" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Senha</label>
-                        <input type="password" id="login-senha" placeholder="Sua senha" required>
-                    </div>
-                `;
-                document.getElementById('login-overlay').style.display = 'flex';
-            }
-        }
-
-        // Executa a chamada de login no Apps Script
-        function executarAutenticacao() {
-            document.getElementById('btn-acao-login').innerText = "Validando... 🕒";
-            document.getElementById('btn-acao-login').disabled = true;
-
-            let urlValidacao = "";
-            
-            if (loginMode === 'completo') {
-                const email = document.getElementById('login-email').value;
-                const senha = document.getElementById('login-senha').value;
-                urlValidacao = `${API_URL}?acao=login&email=${encodeURIComponent(email)}&senha=${encodeURIComponent(senha)}`;
-            } else {
-                const email = localStorage.getItem('movvo_user');
-                const pin = document.getElementById('login-pin').value;
-                urlValidacao = `${API_URL}?acao=validar_pin&email=${encodeURIComponent(email)}&pin=${encodeURIComponent(pin)}`;
-            }
-
-            fetch(urlValidacao)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.sucesso) {
-                        if (loginMode === 'completo') {
-                            localStorage.setItem('movvo_user', data.usuario);
-                        }
-                        
-                        // Esconde tela de login e libera o App
-                        document.getElementById('login-overlay').style.display = 'none';
-                        document.getElementById('txt-welcome').innerText = `Painel: ${localStorage.getItem('movvo_user')}`;
-                        
-                        acionarIsland("Acesso Liberado! 🔑");
-                        carregarTotais();
-                    } else {
-                        alert(data.erro || "Falha na autenticação.");
-                        document.getElementById('btn-acao-login').disabled = false;
-                        verificarStatusAutenticacao();
-                    }
-                })
-                .catch(err => {
-                    alert("Erro ao conectar ao servidor de login.");
-                    document.getElementById('btn-acao-login').disabled = false;
-                    verificarStatusAutenticacao();
-                });
-        }
-
-        function做Logout() {
-            if(confirm("Deseja sair da sua conta? Você precisará fazer login com e-mail e senha novamente.")) {
-                localStorage.clear();
-                verificarStatusAutenticacao();
-            }
-        }
-
-        // Busca os faturamentos privados do banco
-        function carregarTotais() {
-            const usuarioLogado = localStorage.getItem('movvo_user') || '';
-            if (!usuarioLogado) return;
-
-            fetch(`${API_URL}?usuario=${encodeURIComponent(usuarioLogado)}`)
-                .then(response => response.json())
-                .then(totais => {
-                    document.getElementById("ganhos-total").innerText = formatarMoeda(totais.ganhos);
-                    document.getElementById("gastos-total").innerText = formatarMoeda(totais.gastos);
-                    
-                    const lucroElement = document.getElementById("lucro-total");
-                    lucroElement.innerText = formatarMoeda(totais.lucro);
-                    
-                    if(totais.lucro >= 0) {
-                        lucroElement.className = "value positivo";
-                    } else {
-                        lucroElement.className = "value negativo";
-                    }
-                    
-                    fecharIsland("Painel Atualizado ⚡");
-                })
-                .catch(error => {
-                    acionarIsland("Erro ao carregar dados ❌");
-                    console.error("Erro:", error);
-                });
-        }
-
-        // Envia o novo registro salvando quem enviou
-        function processarEnvioCorre() {
-            if (currentInputValue === 0) {
-                acionarIsland("Digite um valor válido! ⚠️");
-                return;
-            }
-
-            let valorFinal = currentInputValue / 100;
-            let ganhos = currentFluxo === 'ganho' ? valorFinal : 0;
-            let gastos = currentFluxo === 'gasto' ? valorFinal : 0;
-            const usuarioLogado = localStorage.getItem('movvo_user') || 'Anônimo';
-
-            acionarIsland("Registrando Corre... ⚡");
-
-            fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: JSON.stringify({ ganhos: ganhos, gastos: gastos, usuario: usuarioLogado })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "success") {
-                    if (currentFluxo === 'ganho') {
-                        confetti({ particleCount: 80, spread: 60, origin: { y: 0.8 } });
-                    }
-                    currentInputValue = 0;
-                    atualizarDisplay();
-                    carregarTotais();
-                } else {
-                    acionarIsland("Erro ao salvar dados ❌");
+                island('PIN incorreto ❌');
+                pinDigitado = '';
+                for (let i = 0; i < 4; i++) {
+                    const dot = document.getElementById('pd' + i);
+                    if (dot) { dot.classList.remove('filled'); dot.innerText = '•'; }
                 }
-            })
-            .catch(error => {
-                acionarIsland("Erro na conexão ❌");
-                console.error("Erro:", error);
-            });
-        }
-
-        // Gerenciamento do Teclado Numérico
-        function digitar(num) {
-            if (num === 'C') {
-                currentInputValue = 0;
-            } else {
-                if (currentInputValue.toString().length >= 8) return; 
-                currentInputValue = (currentInputValue * 10) + num;
             }
+        })
+        .catch(() => island('Erro de conexão ❌'));
+}
+
+function fazerLogin() {
+    const email = (document.getElementById('login-email')?.value || '').trim();
+    const senha = (document.getElementById('login-senha')?.value || '').trim();
+    if (!email || !senha) { island('Preencha todos os campos ⚠️'); return; }
+
+    const btn = document.getElementById('btn-login');
+    btn.disabled = true; btn.innerText = 'Entrando...';
+    island('Validando credenciais... 🔒');
+
+    fetch(`${API_URL}?acao=login&email=${enc(email)}&senha=${enc(senha)}`)
+        .then(r => r.json())
+        .then(d => {
+            if (d.sucesso) {
+                localStorage.setItem('movvo_user', d.email || email);
+                localStorage.setItem('movvo_nome', d.usuario || email);
+                entrarNoApp(d.usuario || email);
+            } else {
+                island(d.erro || 'Falha no login ❌');
+                btn.disabled = false; btn.innerText = 'Entrar';
+            }
+        })
+        .catch(() => {
+            island('Erro de conexão ❌');
+            btn.disabled = false; btn.innerText = 'Entrar';
+        });
+}
+
+function entrarNoApp(nome) {
+    document.getElementById('login-overlay').classList.add('hidden');
+    document.getElementById('txt-welcome').innerText = nome;
+    island('Bem-vindo, ' + nome + '! 🚀');
+    carregarTotais();
+    carregarHistorico();
+}
+
+function fazerLogout() {
+    if (!confirm('Sair da conta? Precisará de e-mail e senha no próximo acesso.')) return;
+    localStorage.clear();
+    location.reload();
+}
+
+// ══════════════════════════════════════════════
+//  DADOS
+// ══════════════════════════════════════════════
+
+function getEmail() {
+    return localStorage.getItem('movvo_user') || '';
+}
+
+function carregarTotais() {
+    const email = getEmail();
+    if (!email) return;
+    fetch(`${API_URL}?acao=get_totais&email=${enc(email)}`)
+        .then(r => r.json())
+        .then(d => {
+            if (!d.sucesso) return;
+            metaDiaria = d.meta || 200;
+            gastosHoje = d.gastos || 0;
+
+            document.getElementById('ganhos-total').innerText = fmt(d.ganhos);
+            document.getElementById('gastos-total').innerText = fmt(d.gastos);
+
+            const lucroEl = document.getElementById('lucro-total');
+            lucroEl.innerText = fmt(d.lucro);
+            lucroEl.className = 'lucro-valor blur-target ' + (d.lucro >= 0 ? 'pos' : 'neg');
+
+            // Barra de meta
+            const pct = Math.min((d.lucro / metaDiaria) * 100, 100);
+            document.getElementById('meta-bar').style.width = Math.max(pct, 0) + '%';
+            document.getElementById('meta-label').innerText =
+                `${fmt(Math.max(d.lucro,0))} / ${fmt(metaDiaria)}`;
+
+            // Glow se atingiu
+            const card = document.getElementById('card-lucro');
+            if (d.lucro >= metaDiaria) {
+                card.classList.add('meta-atingida');
+                confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
+                island('🎉 Meta atingida! Bom trabalho!');
+            } else {
+                card.classList.remove('meta-atingida');
+                island('Painel atualizado ⚡');
+            }
+
+            // Custo/hora do timer
+            atualizarCustoHora();
+        })
+        .catch(() => island('Erro ao carregar dados ❌'));
+}
+
+function carregarHistorico() {
+    const email = getEmail();
+    if (!email) return;
+    fetch(`${API_URL}?acao=get_historico&email=${enc(email)}&dias=7`)
+        .then(r => r.json())
+        .then(d => {
+            if (!d.sucesso || !d.historico?.length) return;
+            document.getElementById('historico-wrap').style.display = 'block';
+            const list = document.getElementById('historico-list');
+            list.innerHTML = d.historico.map(h => `
+                <div class="hist-item">
+                    <span class="hist-data">${h.data}</span>
+                    <span class="hist-lucro ${h.lucro >= 0 ? 'pos' : 'neg'}">${fmt(h.lucro)}</span>
+                </div>
+            `).join('');
+        })
+        .catch(() => {});
+}
+
+function processarEnvio() {
+    if (inputVal === 0) { island('Digite um valor ⚠️'); return; }
+    const valor = inputVal / 100;
+    const ganhos = fluxo === 'ganho' ? valor : 0;
+    const gastos = fluxo === 'gasto' ? valor : 0;
+    const email  = getEmail();
+
+    island('Registrando... ⚡');
+
+    fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ acao: 'registrar', email, ganhos, gastos })
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.status === 'success') {
+            if (fluxo === 'ganho') {
+                confetti({ particleCount: 80, spread: 60, origin: { y: 0.8 } });
+            }
+            inputVal = 0;
             atualizarDisplay();
+            carregarTotais();
+        } else {
+            island('Erro ao salvar ❌');
         }
+    })
+    .catch(() => island('Erro de conexão ❌'));
+}
 
-        function atualizarDisplay() {
-            document.getElementById("valor-display").innerText = formatarMoeda(currentInputValue / 100);
-        }
+// ══════════════════════════════════════════════
+//  TECLADO / INPUT
+// ══════════════════════════════════════════════
 
-        function mudarFluxo(tipo, elemento) {
-            currentFluxo = tipo;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'ganho', 'gasto'));
-            elemento.classList.add('active', tipo);
-        }
+function digitar(num) {
+    if (num === 'C') { inputVal = 0; }
+    else {
+        if (inputVal.toString().length >= 8) return;
+        inputVal = inputVal * 10 + num;
+    }
+    atualizarDisplay();
+}
 
-        function formatarMoeda(valor) {
-            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
+function atualizarDisplay() {
+    const el = document.getElementById('valor-display');
+    el.innerText = fmt(inputVal / 100);
+    el.className = 'display ' + fluxo;
+}
 
-        // Animações da Dynamic Island
-        function acionarIsland(texto) {
-            const island = document.getElementById("island");
-            const islandText = document.getElementById("island-text");
-            island.classList.add("expanded");
-            islandText.innerText = texto;
-        }
+function mudarFluxo(tipo) {
+    fluxo = tipo;
+    document.getElementById('tab-ganho').className = 'tab' + (tipo==='ganho' ? ' on-ganho' : '');
+    document.getElementById('tab-gasto').className = 'tab' + (tipo==='gasto' ? ' on-gasto' : '');
+    document.getElementById('shortcuts-wrap').style.display = tipo === 'gasto' ? 'block' : 'none';
+    atualizarDisplay();
+}
 
-        function fecharIsland(textoFinal) {
-            const island = document.getElementById("island");
-            const islandText = document.getElementById("island-text");
-            islandText.innerText = textoFinal;
-            setTimeout(() => {
-                island.classList.remove("expanded");
-            }, 2000);
-        }
-    </script>
+function atalhoGasto(centavos) {
+    inputVal = centavos;
+    atualizarDisplay();
+    processarEnvio();
+}
+
+// ══════════════════════════════════════════════
+//  TIMER
+// ══════════════════════════════════════════════
+
+function toggleTimer() {
+    if (!timerAtivo) {
+        timerAtivo = true;
+        timerInicio = Date.now() - timerSegundos * 1000;
+        timerInterval = setInterval(tickTimer, 1000);
+        document.getElementById('btn-timer').innerText = 'Parar';
+        document.getElementById('btn-timer').classList.add('running');
+    } else {
+        clearInterval(timerInterval);
+        timerAtivo = false;
+        document.getElementById('btn-timer').innerText = 'Retomar';
+        document.getElementById('btn-timer').classList.remove('running');
+    }
+}
+
+function tickTimer() {
+    timerSegundos = Math.floor((Date.now() - timerInicio) / 1000);
+    const h = Math.floor(timerSegundos / 3600).toString().padStart(2,'0');
+    const m = Math.floor((timerSegundos % 3600) / 60).toString().padStart(2,'0');
+    const s = (timerSegundos % 60).toString().padStart(2,'0');
+    document.getElementById('timer-display').innerText = `${h}:${m}:${s}`;
+    atualizarCustoHora();
+}
+
+function atualizarCustoHora() {
+    const horas = timerSegundos / 3600;
+    const custoHora = horas > 0 ? gastosHoje / horas : 0;
+    document.getElementById('timer-cost').innerText = `${fmt(custoHora)} / h hoje`;
+}
+
+// ══════════════════════════════════════════════
+//  VOZ
+// ══════════════════════════════════════════════
+
+function toggleVoz() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        island('Voz não suportada neste navegador ❌');
+        return;
+    }
+    if (recognizing) {
+        recognition?.stop();
+        return;
+    }
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.lang = 'pt-BR';
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+        recognizing = true;
+        document.getElementById('voice-btn').classList.add('listening');
+        document.getElementById('voice-label').innerText = 'Ouvindo... fale agora!';
+        island('🎙 Escutando...');
+    };
+
+    recognition.onresult = (e) => {
+        const texto = e.results[0][0].transcript.toLowerCase();
+        processarComando(texto);
+    };
+
+    recognition.onend = () => {
+        recognizing = false;
+        document.getElementById('voice-btn').classList.remove('listening');
+        document.getElementById('voice-label').innerText = 'Registrar por voz';
+    };
+
+    recognition.start();
+}
+
+function processarComando(texto) {
+    island(`Entendi: "${texto}"`);
+    // Detecta fluxo
+    if (/gast|cobustív|gasolina|almoç|café|estacion|manuten/.test(texto)) {
+        mudarFluxo('gasto');
+    } else {
+        mudarFluxo('ganho');
+    }
+    // Extrai número
+    const match = texto.match(/(\d+[\.,]?\d*)/);
+    if (match) {
+        const num = parseFloat(match[1].replace(',', '.'));
+        inputVal = Math.round(num * 100);
+        atualizarDisplay();
+        setTimeout(processarEnvio, 600);
+    } else {
+        island('Não entendi o valor ⚠️');
+    }
+}
+
+// ══════════════════════════════════════════════
+//  PRIVACIDADE
+// ══════════════════════════════════════════════
+
+function togglePrivacy() {
+    document.body.classList.toggle('privacy');
+    const btn = document.getElementById('privacy-btn');
+    btn.classList.toggle('active');
+    btn.innerText = document.body.classList.contains('privacy') ? '🙈' : '👁';
+}
+
+// ══════════════════════════════════════════════
+//  GPS / COPILOTO
+// ══════════════════════════════════════════════
+
+function irAbastecer() {
+    window.open('https://www.google.com/maps/search/posto+de+gasolina+perto+de+mim', '_blank');
+}
+function irParaBase() {
+    const base = localStorage.getItem('movvo_base') || '';
+    if (!base) {
+        const addr = prompt('Qual o endereço da sua base / casa? (só precisa fazer isso uma vez)');
+        if (!addr) return;
+        localStorage.setItem('movvo_base', addr);
+    }
+    const dest = localStorage.getItem('movvo_base');
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${enc(dest)}`, '_blank');
+}
+function abrirWaze() {
+    window.open('https://waze.com', '_blank');
+}
+function abrirGoogleMaps() {
+    window.open('https://maps.google.com', '_blank');
+}
+
+// ══════════════════════════════════════════════
+//  MOTIVACIONAL
+// ══════════════════════════════════════════════
+
+function mostrarMensagemMotivacional() {
+    const dia = new Date().getDay(); // 0=Dom ... 6=Sab
+    const hora = new Date().getHours();
+
+    const msgs = [
+        { emoji: '☀️', texto: 'Bom dia! <strong>Semana começando</strong> — cada corrida conta. Foco!' },
+        { emoji: '💪', texto: '<strong>Segunda pesada?</strong> Lembre: cada real salvo hoje vira liberdade amanhã.' },
+        { emoji: '📈', texto: '<strong>Quarta-feira</strong> é o coração da semana. Mantém o ritmo!' },
+        { emoji: '🔥', texto: '<strong>Quinta à noite</strong> tende a ter mais corridas. Aproveita!' },
+        { emoji: '🎯', texto: '<strong>Sexta com tarifa dinâmica alta!</strong> Ótimo momento pra correr mais.' },
+        { emoji: '🚀', texto: '<strong>Sábado = demanda alta.</strong> Mantenha o celular carregado e foco!' },
+        { emoji: '😌', texto: '<strong>Domingo</strong> — um dia mais calmo. Cuide da manutenção do veículo.' },
+    ];
+
+    let idx = dia;
+    if (hora >= 6 && hora < 12) idx = dia;
+    else if (hora >= 12 && hora < 18) idx = (dia + 1) % 7;
+    else idx = (dia + 2) % 7;
+
+    const m = msgs[idx];
+    document.getElementById('motiv-emoji').innerText = m.emoji;
+    document.getElementById('motiv-text').innerHTML = m.texto;
+}
+
+// ══════════════════════════════════════════════
+//  UTILITÁRIOS
+// ══════════════════════════════════════════════
+
+function fmt(v) {
+    return (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function enc(v) { return encodeURIComponent(v || ''); }
+
+let islandTimer = null;
+function island(txt) {
+    clearTimeout(islandTimer);
+    const el = document.getElementById('island');
+    document.getElementById('island-txt').innerText = txt;
+    el.classList.add('expanded');
+    islandTimer = setTimeout(() => el.classList.remove('expanded'), 3000);
+}
+
+// Esconde atalhos por padrão (só aparece em modo Gasto)
+document.getElementById('shortcuts-wrap').style.display = 'none';
+</script>
 </body>
 </html>
