@@ -408,8 +408,8 @@
     </div>
 
     <script>
-        // CONFIGURAÇÃO: Certifique-se de manter sua URL gerada aqui
-        const API_URL = "https://script.google.com/macros/s/AKfycbzaequ07xuHZOQp0NqAt51Rck3r1KZ8c8rRmZwIeYS_TNOT6fyLQ6GikfRxRw2kH5qhPQ/exec";
+        // CONFIGURAÇÃO: Altere este prefixo para apontar para a sua nova API (Ex: "http://localhost:3000/api" ou "/api")
+        const API_BASE_URL = "/api";
 
         let currentFluxo = 'ganho';
         let currentInputValue = 0; 
@@ -490,11 +490,7 @@
         }
 
         function alternarModoCadastro() {
-            if (loginMode === 'completo') {
-                loginMode = 'cadastro';
-            } else {
-                loginMode = 'completo';
-            }
+            loginMode = (loginMode === 'completo') ? 'cadastro' : 'completo';
             verificarStatusAutenticacao();
         }
 
@@ -503,76 +499,70 @@
             btnAcao.innerText = "Processando... 🕒";
             btnAcao.disabled = true;
 
-            // ROTA DE CADASTRO ATUALIZADA PARA GET (IMUNE A COMPORTAMENTOS DE CORS)
+            let url = "";
+            let options = {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: ""
+            };
+
             if (loginMode === 'cadastro') {
-                const nome = document.getElementById('reg-nome').value;
-                const email = document.getElementById('reg-email').value;
-                const senha = document.getElementById('reg-senha').value;
-                const pin = document.getElementById('reg-pin').value;
-
-                const urlCadastro = `${API_URL}?acao=cadastrar_usuario&nome=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&senha=${encodeURIComponent(senha)}&pin=${encodeURIComponent(pin)}`;
-
-                fetch(urlCadastro)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === "success") {
-                        localStorage.setItem('movvo_user', data.usuario.email);
-                        document.getElementById('login-overlay').style.display = 'none';
-                        document.getElementById('txt-welcome').innerText = `Painel: ${data.usuario.nome}`;
-                        
-                        acionarIsland("Conta Criada! 🎉");
-                        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                        carregarTotais();
-                    } else {
-                        alert(data.message || "Erro ao realizar o cadastro.");
-                        btnAcao.disabled = false;
-                        verificarStatusAutenticacao();
-                    }
-                })
-                .catch(err => {
-                    alert("Erro ao conectar com o servidor.");
-                    btnAcao.disabled = false;
-                    verificarStatusAutenticacao();
+                url = `${API_BASE_URL}/auth/register`;
+                options.body = JSON.stringify({
+                    nome: document.getElementById('reg-nome').value,
+                    email: document.getElementById('reg-email').value,
+                    senha: document.getElementById('reg-senha').value,
+                    pin: document.getElementById('reg-pin').value
                 });
-                return;
-            }
-
-            // ROTAS TRADICIONAIS VIA GET (LOGIN E PIN)
-            let urlValidacao = "";
-            if (loginMode === 'completo') {
-                const email = document.getElementById('login-email').value;
-                const senha = document.getElementById('login-senha').value;
-                urlValidacao = `${API_URL}?acao=login&email=${encodeURIComponent(email)}&senha=${encodeURIComponent(senha)}`;
+            } else if (loginMode === 'completo') {
+                url = `${API_BASE_URL}/auth/login`;
+                options.body = JSON.stringify({
+                    email: document.getElementById('login-email').value,
+                    senha: document.getElementById('login-senha').value
+                });
             } else {
-                const email = localStorage.getItem('movvo_user');
-                const pin = document.getElementById('login-pin').value;
-                urlValidacao = `${API_URL}?acao=validar_pin&email=${encodeURIComponent(email)}&pin=${encodeURIComponent(pin)}`;
+                url = `${API_BASE_URL}/auth/pin`;
+                options.body = JSON.stringify({
+                    email: localStorage.getItem('movvo_user'),
+                    pin: document.getElementById('login-pin').value
+                });
             }
 
-            fetch(urlValidacao)
-                .then(res => res.json())
+            fetch(url, options)
+                .then(res => {
+                    if (!res.ok) throw new Error("Erro na requisição.");
+                    return res.json();
+                })
                 .then(data => {
-                    if (data.sucesso) {
-                        if (loginMode === 'completo') {
-                            localStorage.setItem('movvo_user', data.email);
-                        }
-                        
+                    if (data.sucesso || data.status === "success") {
+                        const emailUsuario = data.email || (data.usuario && data.usuario.email);
+                        const nomeUsuario = data.usuario ? (data.usuario.nome || data.usuario) : data.usuario;
+
+                        localStorage.setItem('movvo_user', emailUsuario);
                         document.getElementById('login-overlay').style.display = 'none';
-                        document.getElementById('txt-welcome').innerText = `Painel: ${data.usuario}`;
+                        document.getElementById('txt-welcome').innerText = `Painel: ${nomeUsuario}`;
                         
-                        acionarIsland("Acesso Liberado! 🔑");
+                        if (loginMode === 'cadastro') {
+                            acionarIsland("Conta Criada! 🎉");
+                            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                        } else {
+                            acionarIsland("Acesso Liberado! 🔑");
+                        }
                         carregarTotais();
                     } else {
-                        alert(data.erro || "Falha na validação.");
-                        btnAcao.disabled = false;
-                        verificarStatusAutenticacao();
+                        alert(data.erro || data.message || "Falha na validação.");
+                        resetarBotaoLogin(btnAcao);
                     }
                 })
                 .catch(err => {
-                    alert("Erro ao conectar ao servidor de login.");
-                    btnAcao.disabled = false;
-                    verificarStatusAutenticacao();
+                    alert("Erro ao conectar com o servidor de autenticação.");
+                    resetarBotaoLogin(btnAcao);
                 });
+        }
+
+        function resetarBotaoLogin(btn) {
+            btn.disabled = false;
+            verificarStatusAutenticacao();
         }
 
         function fazerLogout() {
@@ -587,8 +577,12 @@
             const usuarioLogado = localStorage.getItem('movvo_user') || '';
             if (!usuarioLogado) return;
 
-            fetch(`${API_URL}?acao=get_totais&email=${encodeURIComponent(usuarioLogado)}`)
-                .then(response => response.json())
+            // Mantido método GET para consulta limpa de totais via query string
+            fetch(`${API_BASE_URL}/transactions/totals?email=${encodeURIComponent(usuarioLogado)}`)
+                .then(response => {
+                    if (!response.ok) throw new Error();
+                    return response.json();
+                })
                 .then(totais => {
                     if(totais.sucesso) {
                         document.getElementById("ganhos-total").innerText = formatarMoeda(totais.ganhos);
@@ -597,11 +591,7 @@
                         const lucroElement = document.getElementById("lucro-total");
                         lucroElement.innerText = formatarMoeda(totais.lucro);
                         
-                        if(totais.lucro >= 0) {
-                            lucroElement.className = "value positivo";
-                        } else {
-                            lucroElement.className = "value negativo";
-                        }
+                        lucroElement.className = totais.lucro >= 0 ? "value positivo" : "value negativo";
                         fecharIsland("Painel Atualizado ⚡");
                     } else {
                         acionarIsland("Erro na resposta dos totais ❌");
@@ -631,20 +621,21 @@
 
             acionarIsland("Registrando Corre... ⚡");
 
-            const payloadText = JSON.stringify({ 
-                acao: "registrar", 
-                email: usuarioLogado, 
-                ganhos: ganhos, 
-                gastos: gastos 
-            });
-
-            fetch(API_URL, {
+            fetch(`${API_BASE_URL}/transactions`, {
                 method: "POST",
-                body: payloadText
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    email: usuarioLogado, 
+                    ganhos: ganhos, 
+                    gastos: gastos 
+                })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error();
+                return response.json();
+            })
             .then(data => {
-                if (data.status === "success") {
+                if (data.status === "success" || data.sucesso) {
                     if (currentFluxo === 'ganho') {
                         confetti({ particleCount: 80, spread: 60, origin: { y: 0.8 } });
                     }
