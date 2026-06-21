@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MOVVO - Seu Corre Privado</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- Leaflet CSS e JS (Mapas Grátis e Open-Source) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -57,296 +62,68 @@
             border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .login-card h2 {
-            margin-bottom: 10px;
-            font-size: 24px;
-        }
+        .login-card h2 { margin-bottom: 10px; font-size: 24px; }
+        .login-card p { color: #9ca3af; font-size: 14px; margin-bottom: 25px; }
 
-        .login-card p {
-            color: #9ca3af;
-            font-size: 14px;
-            margin-bottom: 25px;
-        }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { display: block; font-size: 12px; color: #9ca3af; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .input-group input { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 12px; color: #fff; font-size: 16px; outline: none; transition: 0.2s; }
+        .input-group input:focus { border-color: var(--accent-color); }
 
-        .input-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
+        .btn-login { width: 100%; background: var(--accent-color); color: white; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+        .btn-login:active { transform: scale(0.98); }
+        .login-toggle-link { display: inline-block; margin-top: 20px; color: var(--accent-color); font-size: 14px; text-decoration: none; cursor: pointer; }
+        .logout-btn { background: transparent; color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; margin-top: 15px; }
 
-        .input-group label {
-            display: block;
-            font-size: 12px;
-            color: #9ca3af;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .input-group input {
-            width: 100%;
-            background: rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 14px;
-            border-radius: 12px;
-            color: #fff;
-            font-size: 16px;
-            outline: none;
-            transition: 0.2s;
-        }
-
-        .input-group input:focus {
-            border-color: var(--accent-color);
-        }
-
-        .btn-login {
-            width: 100%;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: 0.2s;
-        }
-
-        .btn-login:active {
-            transform: scale(0.98);
-        }
-
-        .login-toggle-link {
-            display: inline-block;
-            margin-top: 20px;
-            color: var(--accent-color);
-            font-size: 14px;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .login-toggle-link:hover {
-            text-decoration: underline;
-        }
-
-        .logout-btn {
-            background: transparent;
-            color: #ef4444;
-            border: 1px solid #ef4444;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-
-        /* --- DYNAMIC ISLAND (NOTIFICAÇÕES) --- */
-        .dynamic-island-container {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            pointer-events: none;
-        }
-
-        .dynamic-island {
-            background-color: var(--island-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 25px;
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 180px;
-            max-width: 320px;
-            height: 40px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .dynamic-island.expanded {
-            border-radius: 20px;
-            padding: 15px 25px;
-            height: auto;
-            min-width: 260px;
-        }
-
-        .island-content {
-            font-size: 14px;
-            font-weight: 500;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        /* --- DYNAMIC ISLAND --- */
+        .dynamic-island-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; pointer-events: none; }
+        .dynamic-island { background-color: var(--island-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 25px; padding: 10px 20px; display: flex; align-items: center; justify-content: center; min-width: 180px; max-width: 320px; height: 40px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .dynamic-island.expanded { border-radius: 20px; padding: 15px 25px; height: auto; min-width: 260px; }
+        .island-content { font-size: 14px; font-weight: 500; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* --- INTERFACE PRINCIPAL --- */
-        header {
-            width: 100%;
-            max-width: 480px;
-            margin-top: 70px;
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        header { width: 100%; max-width: 480px; margin-top: 70px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
 
-        header h1 {
-            font-size: 26px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .dashboard {
-            width: 100%;
-            max-width: 480px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 24px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-        }
-
-        .card.full-width {
-            grid-column: span 2;
-            align-items: center;
-            padding: 25px;
-            background: linear-gradient(135deg, #151d30 0%, #1e2942 100%);
-        }
-
-        .card h3 {
-            font-size: 13px;
-            text-transform: uppercase;
-            color: #9ca3af;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-
-        .card .value {
-            font-size: 22px;
-            font-weight: 700;
-        }
-
-        .card.full-width .value {
-            font-size: 36px;
-            margin-top: 5px;
-        }
-
+        .dashboard { width: 100%; max-width: 480px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .card { background-color: var(--card-bg); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; border: 1px solid rgba(255, 255, 255, 0.03); }
+        .card.full-width { grid-column: span 2; align-items: center; padding: 25px; background: linear-gradient(135deg, #151d30 0%, #1e2942 100%); }
+        .card h3 { font-size: 13px; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .card .value { font-size: 22px; font-weight: 700; }
+        .card.full-width .value { font-size: 36px; margin-top: 5px; }
         .positivo { color: #10b981; }
         .negativo { color: #ef4444; }
 
-        /* --- TECLADO E FLUXO DE ENTRADA --- */
-        .input-container {
-            width: 100%;
-            max-width: 480px;
-            background-color: var(--card-bg);
-            border-radius: 32px;
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            border: 1px solid rgba(255, 255, 255, 0.03);
-        }
+        /* --- CONTÊINER PRINCIPAL DAS ABAS --- */
+        .input-container { width: 100%; max-width: 480px; background-color: var(--card-bg); border-radius: 32px; padding: 25px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2); border: 1px solid rgba(255, 255, 255, 0.03); margin-bottom: 20px; }
+        .tab-menu { display: flex; background: rgba(0, 0, 0, 0.2); border-radius: 100px; padding: 4px; width: 100%; margin-bottom: 20px; }
+        .tab-btn { flex: 1; background: none; border: none; color: #9ca3af; padding: 12px; font-size: 14px; font-weight: 600; border-radius: 100px; cursor: pointer; transition: all 0.2s; }
+        .tab-btn.active.ganho { background-color: #10b981; color: white; }
+        .tab-btn.active.gasto { background-color: #ef4444; color: white; }
+        .tab-btn.active.maps { background-color: var(--accent-color); color: white; }
 
-        .tab-menu {
-            display: flex;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 100px;
-            padding: 4px;
-            width: 100%;
-            margin-bottom: 20px;
-        }
+        .display { font-size: 42px; font-weight: 700; margin-bottom: 25px; height: 55px; display: flex; align-items: center; justify-content: center; }
+        .keyboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 100%; }
+        .key { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.02); color: var(--text-color); font-size: 24px; font-weight: 600; border-radius: 100px; height: 65px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; transition: background 0.1s; }
+        .key:active { background: rgba(255, 255, 255, 0.12); }
+        .key.action { background: var(--accent-color); color: white; }
 
-        .tab-btn {
-            flex: 1;
-            background: none;
-            border: none;
-            color: #9ca3af;
-            padding: 12px;
-            font-size: 15px;
-            font-weight: 600;
-            border-radius: 100px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .tab-btn.active.ganho {
-            background-color: #10b981;
-            color: white;
-        }
-
-        .tab-btn.active.gasto {
-            background-color: #ef4444;
-            color: white;
-        }
-
-        .display {
-            font-size: 42px;
-            font-weight: 700;
-            margin-bottom: 25px;
-            height: 55px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .keyboard {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            width: 100%;
-        }
-
-        .key {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.02);
-            color: var(--text-color);
-            font-size: 24px;
-            font-weight: 600;
-            border-radius: 100px;
-            height: 65px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            user-select: none;
-            transition: background 0.1s;
-        }
-
-        .key:active {
-            background: rgba(255, 255, 255, 0.12);
-        }
-
-        .key.action {
-            background: var(--accent-color);
-            color: white;
-        }
-        .key.action:active {
-            background: #2563eb;
-        }
+        /* --- SEÇÃO DO MAPA INTERNO --- */
+        #container-mapa { width: 100%; display: none; flex-direction: column; gap: 15px; }
+        #map { width: 100%; height: 320px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); z-index: 1; }
+        .map-search-box { display: flex; gap: 10px; width: 100%; }
+        .map-search-box input { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; color: #fff; font-size: 14px; outline: none; }
+        .btn-mapa { width: 100%; background: var(--accent-color); color: white; border: none; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; }
     </style>
 </head>
 <body>
 
+    <!-- O VERLAY LOGIN -->
     <div id="login-overlay">
         <div class="login-card" id="login-form-container">
             <h2 id="login-title">Entrar no MOVVO</h2>
             <p id="login-subtitle">Por favor, insira suas credenciais para acessar seu painel.</p>
-            
             <div id="inputs-wrapper"></div>
-            
             <button class="btn-login" onclick="executarAutenticacao()" id="btn-acao-login">Entrar</button>
             <div id="toggle-container">
                 <a class="login-toggle-link" id="login-toggle" onclick="alternarModoCadastro()">Criar uma conta</a>
@@ -354,6 +131,7 @@
         </div>
     </div>
 
+    <!-- DYNAMIC ISLAND -->
     <div class="dynamic-island-container">
         <div class="dynamic-island" id="island">
             <div class="island-content" id="island-text">Buscando totais... 🕒</div>
@@ -384,41 +162,177 @@
     </div>
 
     <div class="input-container">
+        <!-- Menu de Abas Incluindo MAPS -->
         <div class="tab-menu">
             <button class="tab-btn active ganho" onclick="mudarFluxo('ganho', this)">Faturamento</button>
             <button class="tab-btn gasto" onclick="mudarFluxo('gasto', this)">Gasto</button>
+            <button class="tab-btn maps" onclick="mudarFluxo('maps', this)">Navegação 🗺️</button>
         </div>
 
-        <div class="display" id="valor-display">R$ 0,00</div>
+        <!-- Fluxo do Teclado Numérico -->
+        <div id="fluxo-teclado" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="display" id="valor-display">R$ 0,00</div>
+            <div class="keyboard">
+                <div class="key" onclick="digitar(1)">1</div>
+                <div class="key" onclick="digitar(2)">2</div>
+                <div class="key" onclick="digitar(3)">3</div>
+                <div class="key" onclick="digitar(4)">4</div>
+                <div class="key" onclick="digitar(5)">5</div>
+                <div class="key" onclick="digitar(6)">6</div>
+                <div class="key" onclick="digitar(7)">7</div>
+                <div class="key" onclick="digitar(8)">8</div>
+                <div class="key" onclick="digitar(9)">9</div>
+                <div class="key" onclick="digitar('C')">C</div>
+                <div class="key" onclick="digitar(0)">0</div>
+                <div class="key action" onclick="processarEnvioCorre()">✓</div>
+            </div>
+        </div>
 
-        <div class="keyboard">
-            <div class="key" onclick="digitar(1)">1</div>
-            <div class="key" onclick="digitar(2)">2</div>
-            <div class="key" onclick="digitar(3)">3</div>
-            <div class="key" onclick="digitar(4)">4</div>
-            <div class="key" onclick="digitar(5)">5</div>
-            <div class="key" onclick="digitar(6)">6</div>
-            <div class="key" onclick="digitar(7)">7</div>
-            <div class="key" onclick="digitar(8)">8</div>
-            <div class="key" onclick="digitar(9)">9</div>
-            <div class="key" onclick="digitar('C')">C</div>
-            <div class="key" onclick="digitar(0)">0</div>
-            <div class="key action" onclick="processarEnvioCorre()">✓</div>
+        <!-- Fluxo do Mapa Integrado -->
+        <div id="container-mapa">
+            <div class="map-search-box">
+                <input type="text" id="map-destino" placeholder="Digite o destino do corre...">
+            </div>
+            <div id="map"></div>
+            <button class="btn-mapa" id="btn-status-corre" onclick="gerenciarStatusCorrida()">Iniciar Novo Corre 🏍️</button>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO: Altere este prefixo para apontar para a sua nova API (Ex: "http://localhost:3000/api" ou "/api")
         const API_BASE_URL = "/api";
-
         let currentFluxo = 'ganho';
         let currentInputValue = 0; 
         let loginMode = 'completo'; 
+        
+        // Variáveis do Leaflet
+        let mapa, marcadorUsuario, marcadorDestino;
+        let idCorridaAtiva = null;
+        let latAtual = -3.7319, lngAtual = -38.5267; // Padrão Inicial (Fortaleza)
 
         document.addEventListener("DOMContentLoaded", () => {
             verificarStatusAutenticacao();
         });
 
+        // --- CONTROLE DE FLUXO (ABAS) ---
+        function mudarFluxo(tipo, elemento) {
+            currentFluxo = tipo;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'ganho', 'gasto', 'maps'));
+            elemento.classList.add('active', tipo);
+
+            if (tipo === 'maps') {
+                document.getElementById('fluxo-teclado').style.display = 'none';
+                document.getElementById('container-mapa').style.display = 'flex';
+                inicializarMapaNativo();
+            } else {
+                document.getElementById('fluxo-teclado').style.display = 'flex';
+                document.getElementById('container-mapa').style.display = 'none';
+            }
+        }
+
+        // --- INICIALIZAÇÃO DO MAPA GRATUITO ---
+        function inicializarMapaNativo() {
+            if (mapa) {
+                setTimeout(() => mapa.invalidateSize(), 100);
+                return;
+            }
+
+            // Inicializa o mapa focado na localização atual ou padrão
+            mapa = L.map('map').setView([latAtual, lngAtual], 14);
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(mapa);
+
+            marcadorUsuario = L.marker([latAtual, lngAtual]).addTo(mapa).bindPopup("Você está aqui").openPopup();
+
+            // Pega o GPS do celular em tempo real
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    latAtual = pos.coords.latitude;
+                    lngAtual = pos.coords.longitude;
+                    mapa.setView([latAtual, lngAtual], 15);
+                    marcadorUsuario.setLatLng([latAtual, lngAtual]);
+                });
+            }
+        }
+
+        // --- CONTROLE DAS CORRIDAS DO MAPS NO SUPABASE ---
+        function gerenciarStatusCorrida() {
+            const btn = document.getElementById('btn-status-corre');
+            const destinoTexto = document.getElementById('map-destino').value;
+            const usuarioLogado = localStorage.getItem('movvo_user') || '';
+
+            if (!idCorridaAtiva) {
+                if (!destinoTexto) {
+                    acionarIsland("Digite o destino primeiro! ⚠️");
+                    return;
+                }
+
+                acionarIsland("Abrindo Rota no Banco... 🗺️");
+                
+                // Simulação de rota: Em um mapa real completo usaríamos roteamento, 
+                // aqui criamos um ponto fictício próximo para salvar as coordenadas no Supabase
+                let latDestinoFicticio = latAtual + 0.015;
+                let lngDestinoFicticio = lngAtual + 0.015;
+
+                if(marcadorDestino) mapa.removeLayer(marcadorDestino);
+                marcadorDestino = L.marker([latDestinoFicticio, lngDestinoFicticio]).addTo(mapa).bindPopup(`Destino: ${destinoTexto}`).openPopup();
+                
+                // Centraliza nos dois pontos
+                const bounds = L.latLngBounds([latAtual, lngAtual], [latDestinoFicticio, lngDestinoFicticio]);
+                mapa.fitBounds(bounds);
+
+                fetch(`${API_BASE_URL}/routes`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: usuarioLogado,
+                        origem: "Minha Localização Atual",
+                        destino: destinoTexto,
+                        lat_origem: latAtual,
+                        lng_origem: lngAtual,
+                        lat_destino: latDestinoFicticio,
+                        lng_destino: lngDestinoFicticio,
+                        distancia: 4.2 // Valor médio de teste
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.sucesso) {
+                        idCorridaAtiva = data.rota_id;
+                        btn.innerText = "Concluir Corre e Ganhar 🏁";
+                        btn.style.background = "#10b981";
+                        acionarIsland("Rota Iniciada! Boa viagem 🏍️");
+                    }
+                });
+
+            } else {
+                // Concluir Corrida
+                acionarIsland("Fechando viagem... 📈");
+                fetch(`${API_BASE_URL}/routes`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ rota_id: idCorridaAtiva })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.sucesso) {
+                        idCorridaAtiva = null;
+                        document.getElementById('map-destino').value = "";
+                        if(marcadorDestino) mapa.removeLayer(marcadorDestino);
+                        
+                        btn.innerText = "Iniciar Novo Corre 🏍️";
+                        btn.style.background = "var(--accent-color)";
+                        
+                        // Joga o motoca direto de volta pro faturamento para ele digitar o ganho
+                        mudarFluxo('ganho', document.querySelectorAll('.tab-btn')[0]);
+                        acionarIsland("Corre concluído! Quanto você faturou? 💰");
+                    }
+                });
+            }
+        }
+
+        // --- AUTENTICAÇÃO, TECLADO E CORES ORIGINAIS DO SEU APP ---
         function verificarStatusAutenticacao() {
             const usuarioSalvo = localStorage.getItem('movvo_user');
             const wrapper = document.getElementById('inputs-wrapper');
@@ -431,60 +345,29 @@
                 document.getElementById('btn-acao-login').innerText = "Desbloquear";
                 if(toggleBtn) toggleBtn.style.display = 'none';
                 
-                wrapper.innerHTML = `
-                    <div class="input-group">
-                        <label>PIN de Acesso</label>
-                        <input type="password" id="login-pin" maxlength="4" pattern="\\d*" inputmode="numeric" placeholder="****" autofocus>
-                    </div>
-                `;
+                wrapper.innerHTML = `<div class="input-group"><label>PIN de Acesso</label><input type="password" id="login-pin" maxlength="4" pattern="\\d*" inputmode="numeric" placeholder="****" autofocus></div>`;
                 document.getElementById('login-overlay').style.display = 'flex';
             } else if (loginMode === 'cadastro') {
                 document.getElementById('login-title').innerText = "Criar Conta MOVVO";
                 document.getElementById('login-subtitle').innerText = "Cadastre-se para começar a rastrear seus corres.";
                 document.getElementById('btn-acao-login').innerText = "Cadastrar Conta";
-                if(toggleBtn) {
-                    toggleBtn.style.display = 'inline-block';
-                    toggleBtn.innerText = "Já tenho uma conta. Entrar";
-                }
+                if(toggleBtn) { toggleBtn.style.display = 'inline-block'; toggleBtn.innerText = "Já tenho uma conta. Entrar"; }
 
                 wrapper.innerHTML = `
-                    <div class="input-group">
-                        <label>Nome Completo</label>
-                        <input type="text" id="reg-nome" placeholder="Ex: Pablo Santos" required>
-                    </div>
-                    <div class="input-group">
-                        <label>E-mail</label>
-                        <input type="email" id="reg-email" placeholder="seu@email.com" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Senha</label>
-                        <input type="password" id="reg-senha" placeholder="Crie uma senha estável" required>
-                    </div>
-                    <div class="input-group">
-                        <label>PIN Rápido (4 dígitos)</label>
-                        <input type="password" id="reg-pin" maxlength="4" pattern="\\d*" inputmode="numeric" placeholder="Ex: 1234" required>
-                    </div>
-                `;
+                    <div class="input-group"><label>Nome Completo</label><input type="text" id="reg-nome" placeholder="Ex: Pablo Marques" required></div>
+                    <div class="input-group"><label>E-mail</label><input type="email" id="reg-email" placeholder="seu@email.com" required></div>
+                    <div class="input-group"><label>Senha</label><input type="password" id="reg-senha" placeholder="Crie uma senha estável" required></div>
+                    <div class="input-group"><label>PIN Rápido (4 dígitos)</label><input type="password" id="reg-pin" maxlength="4" pattern="\\d*" inputmode="numeric" placeholder="Ex: 1234" required></div>`;
             } else {
                 loginMode = 'completo';
                 document.getElementById('login-title').innerText = "Entrar no MOVVO";
                 document.getElementById('login-subtitle').innerText = "Insira seu e-mail e senha cadastrados para continuar.";
                 document.getElementById('btn-acao-login').innerText = "Entrar";
-                if(toggleBtn) {
-                    toggleBtn.style.display = 'inline-block';
-                    toggleBtn.innerText = "Criar uma conta";
-                }
+                if(toggleBtn) { toggleBtn.style.display = 'inline-block'; toggleBtn.innerText = "Criar uma conta"; }
                 
                 wrapper.innerHTML = `
-                    <div class="input-group">
-                        <label>E-mail</label>
-                        <input type="email" id="login-email" placeholder="seu@email.com" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Senha</label>
-                        <input type="password" id="login-senha" placeholder="Sua senha" required>
-                    </div>
-                `;
+                    <div class="input-group"><label>E-mail</label><input type="email" id="login-email" placeholder="seu@email.com" required></div>
+                    <div class="input-group"><label>Senha</label><input type="password" id="login-senha" placeholder="Sua senha" required></div>`;
                 document.getElementById('login-overlay').style.display = 'flex';
             }
         }
@@ -500,11 +383,7 @@
             btnAcao.disabled = true;
 
             let url = "";
-            let options = {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: ""
-            };
+            let options = { method: "POST", headers: { "Content-Type": "application/json" }, body: "" };
 
             if (loginMode === 'cadastro') {
                 url = `${API_BASE_URL}/auth/register`;
@@ -529,10 +408,7 @@
             }
 
             fetch(url, options)
-                .then(res => {
-                    if (!res.ok) throw new Error("Erro na requisição.");
-                    return res.json();
-                })
+                .then(res => { if (!res.ok) throw new Error(); return res.json(); })
                 .then(data => {
                     if (data.sucesso || data.status === "success") {
                         const emailUsuario = data.email || (data.usuario && data.usuario.email);
@@ -550,147 +426,68 @@
                         }
                         carregarTotais();
                     } else {
-                        alert(data.erro || data.message || "Falha na validação.");
+                        alert(data.erro || "Falha na validação.");
                         resetarBotaoLogin(btnAcao);
                     }
                 })
-                .catch(err => {
-                    alert("Erro ao conectar com o servidor de autenticação.");
-                    resetarBotaoLogin(btnAcao);
-                });
+                .catch(() => { alert("Erro ao conectar com o servidor."); resetarBotaoLogin(btnAcao); });
         }
 
-        function resetarBotaoLogin(btn) {
-            btn.disabled = false;
-            verificarStatusAutenticacao();
-        }
-
-        function fazerLogout() {
-            if(confirm("Deseja sair da sua conta? Você precisará realizar o login completo novamente.")) {
-                localStorage.clear();
-                loginMode = 'completo';
-                verificarStatusAutenticacao();
-            }
-        }
+        function resetarBotaoLogin(btn) { btn.disabled = false; verificarStatusAutenticacao(); }
+        function fazerLogout() { if(confirm("Deseja sair?")) { localStorage.clear(); loginMode = 'completo'; verificarStatusAutenticacao(); } }
 
         function carregarTotais() {
             const usuarioLogado = localStorage.getItem('movvo_user') || '';
             if (!usuarioLogado) return;
 
-            // Mantido método GET para consulta limpa de totais via query string
             fetch(`${API_BASE_URL}/transactions/totals?email=${encodeURIComponent(usuarioLogado)}`)
-                .then(response => {
-                    if (!response.ok) throw new Error();
-                    return response.json();
-                })
+                .then(res => res.json())
                 .then(totais => {
                     if(totais.sucesso) {
                         document.getElementById("ganhos-total").innerText = formatarMoeda(totais.ganhos);
                         document.getElementById("gastos-total").innerText = formatarMoeda(totais.gastos);
-                        
                         const lucroElement = document.getElementById("lucro-total");
                         lucroElement.innerText = formatarMoeda(totais.lucro);
-                        
                         lucroElement.className = totais.lucro >= 0 ? "value positivo" : "value negativo";
                         fecharIsland("Painel Atualizado ⚡");
-                    } else {
-                        acionarIsland("Erro na resposta dos totais ❌");
                     }
-                })
-                .catch(error => {
-                    acionarIsland("Erro ao carregar dados ❌");
-                    console.error("Erro:", error);
                 });
         }
 
         function processarEnvioCorre() {
-            if (currentInputValue === 0) {
-                acionarIsland("Digite um valor válido! ⚠️");
-                return;
-            }
-
+            if (currentInputValue === 0) { acionarIsland("Digite um valor válido! ⚠️"); return; }
             let valorFinal = currentInputValue / 100;
             let ganhos = currentFluxo === 'ganho' ? valorFinal : 0;
             let gastos = currentFluxo === 'gasto' ? valorFinal : 0;
             const usuarioLogado = localStorage.getItem('movvo_user') || '';
-
-            if(!usuarioLogado) {
-                acionarIsland("Usuário não identificado ❌");
-                return;
-            }
 
             acionarIsland("Registrando Corre... ⚡");
 
             fetch(`${API_BASE_URL}/transactions`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    email: usuarioLogado, 
-                    ganhos: ganhos, 
-                    gastos: gastos 
-                })
+                body: JSON.stringify({ email: usuarioLogado, ganhos, gastos })
             })
-            .then(response => {
-                if (!response.ok) throw new Error();
-                return response.json();
-            })
+            .then(res => res.json())
             .then(data => {
                 if (data.status === "success" || data.sucesso) {
-                    if (currentFluxo === 'ganho') {
-                        confetti({ particleCount: 80, spread: 60, origin: { y: 0.8 } });
-                    }
+                    if (currentFluxo === 'ganho') confetti({ particleCount: 80, spread: 60, origin: { y: 0.8 } });
                     currentInputValue = 0;
                     atualizarDisplay();
                     carregarTotais();
-                } else {
-                    acionarIsland(data.message || "Erro ao salvar dados ❌");
                 }
-            })
-            .catch(error => {
-                acionarIsland("Erro na conexão ❌");
-                console.error("Erro:", error);
             });
         }
 
         function digitar(num) {
-            if (num === 'C') {
-                currentInputValue = 0;
-            } else {
-                if (currentInputValue.toString().length >= 8) return; 
-                currentInputValue = (currentInputValue * 10) + num;
-            }
+            if (num === 'C') currentInputValue = 0;
+            else { if (currentInputValue.toString().length >= 8) return; currentInputValue = (currentInputValue * 10) + num; }
             atualizarDisplay();
         }
-
-        function atualizarDisplay() {
-            document.getElementById("valor-display").innerText = formatarMoeda(currentInputValue / 100);
-        }
-
-        function mudarFluxo(tipo, elemento) {
-            currentFluxo = tipo;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'ganho', 'gasto'));
-            elemento.classList.add('active', tipo);
-        }
-
-        function formatarMoeda(valor) {
-            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
-
-        function acionarIsland(texto) {
-            const island = document.getElementById("island");
-            const islandText = document.getElementById("island-text");
-            island.classList.add("expanded");
-            islandText.innerText = texto;
-        }
-
-        function fecharIsland(textoFinal) {
-            const island = document.getElementById("island");
-            const islandText = document.getElementById("island-text");
-            islandText.innerText = textoFinal;
-            setTimeout(() => {
-                island.classList.remove("expanded");
-            }, 2000);
-        }
+        function atualizarDisplay() { document.getElementById("valor-display").innerText = formatarMoeda(currentInputValue / 100); }
+        function formatarMoeda(valor) { return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+        function acionarIsland(texto) { const island = document.getElementById("island"); const islandText = document.getElementById("island-text"); island.classList.add("expanded"); islandText.innerText = texto; }
+        function fecharIsland(textoFinal) { const island = document.getElementById("island"); const islandText = document.getElementById("island-text"); islandText.innerText = textoFinal; setTimeout(() => { island.classList.remove("expanded"); }, 2000); }
     </script>
 </body>
 </html>
