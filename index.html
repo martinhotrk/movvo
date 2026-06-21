@@ -4,47 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MOVVO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
         :root {
-            --bg:        #080c14;
-            --surface:   #0f1522;
-            --card:      #131b2e;
-            --border:    rgba(255,255,255,0.06);
-            --text:      #f0f2f7;
-            --muted:     #5a6480;
-            --accent:    #3d7eff;
-            --green:     #00d68f;
-            --red:       #ff4d6d;
-            --glow-green: 0 0 28px rgba(0,214,143,0.35);
-            --glow-red:   0 0 28px rgba(255,77,109,0.30);
-            --glow-blue:  0 0 28px rgba(61,126,255,0.30);
-            --radius:    20px;
+            --asfalto:   #0D0D0D;
+            --concreto:  #1A1A1A;
+            --placa:     #242424;
+            --faixa:     #F5C518;
+            --texto:     #F0EFE9;
+            --muted:     #666666;
+            --gasto:     #FF6B2B;
+            --lucro:     #22C55E;
+            --borda:     rgba(255,255,255,0.07);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--asfalto);
+            color: var(--texto);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 0 16px 40px;
+            padding: 0 16px 60px;
             overflow-x: hidden;
         }
 
-        /* ── PRIVACY BLUR ── */
-        body.privacy .blur-target { filter: blur(12px); user-select: none; }
+        body.privacy .blur-target { filter: blur(10px); user-select: none; }
 
         /* ── LOGIN ── */
         #login-overlay {
             position: fixed; inset: 0;
-            background: var(--bg);
+            background: var(--asfalto);
             z-index: 9999;
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
@@ -52,498 +47,517 @@
         }
         #login-overlay.hidden { display: none; }
 
-        .login-logo {
-            font-size: 32px; font-weight: 900;
-            letter-spacing: -1px;
-            margin-bottom: 32px;
-            background: linear-gradient(135deg, #3d7eff, #00d68f);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .login-marca {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -2px;
+            color: var(--faixa);
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+        .login-tagline {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 40px;
+            letter-spacing: 0.5px;
         }
 
         .login-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 28px;
-            padding: 32px 28px;
-            width: 100%; max-width: 390px;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+            background: var(--concreto);
+            border: 1px solid var(--borda);
+            border-radius: 20px;
+            padding: 28px 24px;
+            width: 100%; max-width: 380px;
         }
 
-        .login-card h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-        .login-card p  { color: var(--muted); font-size: 14px; margin-bottom: 28px; line-height: 1.5; }
+        .login-card h2 {
+            font-size: 20px; font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 5px;
+        }
+        .login-card p {
+            font-size: 13px; color: var(--muted);
+            margin-bottom: 24px; line-height: 1.5;
+        }
 
-        .field { margin-bottom: 16px; }
+        .field { margin-bottom: 14px; }
         .field label {
             display: block; font-size: 11px; font-weight: 600;
             color: var(--muted); text-transform: uppercase;
-            letter-spacing: 0.8px; margin-bottom: 8px;
+            letter-spacing: 1px; margin-bottom: 7px;
         }
         .field input {
-            width: 100%; background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 15px 16px; border-radius: 14px;
-            color: var(--text); font-size: 16px;
-            font-family: inherit; outline: none;
+            width: 100%;
+            background: var(--placa);
+            border: 1px solid var(--borda);
+            padding: 14px 16px;
+            border-radius: 12px;
+            color: var(--texto);
+            font-size: 16px;
+            font-family: inherit;
+            outline: none;
             transition: border-color 0.2s;
         }
-        .field input:focus { border-color: var(--accent); }
+        .field input:focus { border-color: var(--faixa); }
 
-        /* PIN grid */
-        .pin-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr);
-            gap: 12px; margin-bottom: 28px;
-        }
-        .pin-dot {
-            aspect-ratio: 1; border-radius: 12px;
-            background: var(--surface); border: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 28px; color: var(--muted);
-            transition: all 0.15s;
-        }
-        .pin-dot.filled { background: var(--accent); border-color: var(--accent); color: white; }
-
-        .btn-primary {
-            width: 100%; background: var(--accent);
-            color: white; border: none;
-            padding: 16px; border-radius: 14px;
-            font-size: 16px; font-weight: 700;
+        .btn-amarelo {
+            width: 100%;
+            background: var(--faixa);
+            color: #000;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 15px; font-weight: 700;
             font-family: inherit; cursor: pointer;
             transition: opacity 0.15s, transform 0.1s;
-            box-shadow: var(--glow-blue);
+            letter-spacing: -0.2px;
         }
-        .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-amarelo:active { transform: scale(0.98); opacity: 0.88; }
+        .btn-amarelo:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        /* Mini teclado PIN */
-        .pin-keyboard {
+        .btn-ghost {
+            width: 100%;
+            background: transparent;
+            color: var(--texto);
+            border: 1px solid var(--borda);
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 15px; font-weight: 600;
+            font-family: inherit; cursor: pointer;
+            margin-top: 10px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .btn-ghost:active { background: var(--placa); }
+
+        .btn-voltar {
+            width: 100%; background: none; border: none;
+            color: var(--muted); font-size: 13px; font-weight: 500;
+            font-family: inherit; cursor: pointer;
+            padding: 12px; margin-top: 6px;
+        }
+        .btn-voltar:hover { color: var(--texto); }
+
+        /* PIN */
+        .pin-dots {
+            display: flex; gap: 14px; justify-content: center;
+            margin-bottom: 28px;
+        }
+        .pin-dot {
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            background: var(--placa);
+            border: 1.5px solid var(--muted);
+            transition: all 0.15s;
+        }
+        .pin-dot.filled {
+            background: var(--faixa);
+            border-color: var(--faixa);
+            transform: scale(1.1);
+        }
+
+        .pin-teclado {
             display: grid; grid-template-columns: repeat(3, 1fr);
             gap: 10px; margin-bottom: 20px;
         }
         .pkey {
-            background: var(--surface); border: 1px solid var(--border);
-            color: var(--text); font-size: 22px; font-weight: 600;
-            border-radius: 14px; height: 58px;
+            background: var(--placa); border: 1px solid var(--borda);
+            color: var(--texto);
+            font-size: 22px; font-weight: 600; font-family: inherit;
+            border-radius: 12px; height: 56px;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; user-select: none;
             transition: background 0.1s;
         }
-        .pkey:active { background: rgba(61,126,255,0.2); }
-        .pkey.del { font-size: 18px; color: var(--muted); }
+        .pkey:active { background: rgba(245,197,24,0.15); }
+        .pkey.del { font-size: 17px; color: var(--muted); }
 
-        /* ── DYNAMIC ISLAND ── */
+        /* ── ISLAND ── */
         .island-wrap {
-            position: fixed; top: 16px; left: 50%;
+            position: fixed; top: 14px; left: 50%;
             transform: translateX(-50%);
             z-index: 1000; pointer-events: none;
         }
         .island {
-            background: rgba(15,21,34,0.92);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255,255,255,0.09);
-            border-radius: 24px;
-            padding: 10px 20px;
-            min-width: 160px; max-width: 300px; height: 40px;
+            background: var(--concreto);
+            border: 1px solid var(--borda);
+            border-radius: 22px;
+            padding: 9px 18px;
+            min-width: 140px; height: 38px;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-            transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+            transition: all 0.35s cubic-bezier(0.175,0.885,0.32,1.275);
             overflow: hidden;
         }
-        .island.expanded { height: auto; border-radius: 18px; padding: 14px 22px; }
+        .island.exp { height: auto; border-radius: 16px; padding: 12px 20px; }
         .island span { font-size: 13px; font-weight: 600; white-space: nowrap; }
 
         /* ── HEADER ── */
         header {
             width: 100%; max-width: 480px;
-            margin-top: 72px;
+            margin-top: 66px; margin-bottom: 18px;
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 20px;
         }
-        .header-left h1 {
-            font-size: 24px; font-weight: 900; letter-spacing: -0.5px;
-            background: linear-gradient(135deg,#3d7eff,#00d68f);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+
+        .header-logo {
+            font-size: 26px; font-weight: 700;
+            letter-spacing: -1.5px;
+            color: var(--faixa);
         }
-        .header-left p { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-        .header-actions { display: flex; gap: 10px; align-items: center; }
-
-        .icon-btn {
-            background: var(--card); border: 1px solid var(--border);
-            color: var(--muted); width: 38px; height: 38px;
-            border-radius: 12px; display: flex;
-            align-items: center; justify-content: center;
-            cursor: pointer; font-size: 16px;
-            transition: all 0.2s;
+        .header-sub {
+            font-size: 11px; color: var(--muted);
+            margin-top: 1px; letter-spacing: 0.3px;
         }
-        .icon-btn:active { transform: scale(0.93); }
-        .icon-btn.active { color: var(--accent); border-color: var(--accent); }
 
-        .btn-logout {
-            background: transparent; color: var(--red);
-            border: 1px solid rgba(255,77,109,0.35);
-            padding: 6px 14px; border-radius: 20px;
+        .header-actions { display: flex; gap: 8px; align-items: center; }
+
+        .ico-btn {
+            background: var(--concreto);
+            border: 1px solid var(--borda);
+            color: var(--muted);
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 15px;
+            transition: all 0.15s;
+        }
+        .ico-btn:active { transform: scale(0.92); }
+        .ico-btn.on { color: var(--faixa); border-color: rgba(245,197,24,0.35); }
+
+        .btn-sair {
+            background: transparent;
+            color: var(--gasto);
+            border: 1px solid rgba(255,107,43,0.3);
+            padding: 6px 12px;
+            border-radius: 20px;
             font-size: 12px; font-weight: 600;
             font-family: inherit; cursor: pointer;
         }
 
-        /* ── DASHBOARD ── */
-        .dashboard {
-            width: 100%; max-width: 480px;
-            display: flex; flex-direction: column;
-            gap: 12px; margin-bottom: 16px;
-        }
+        /* ── CARDS ── */
+        .cards { width: 100%; max-width: 480px; margin-bottom: 14px; }
 
-        /* Card de Lucro Principal */
+        /* Card lucro */
         .card-lucro {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px;
-            text-align: center;
-            transition: box-shadow 0.6s, border-color 0.6s;
+            background: var(--concreto);
+            border: 1px solid var(--borda);
+            border-radius: 18px;
+            padding: 22px 20px 18px;
+            margin-bottom: 12px;
             position: relative; overflow: hidden;
         }
-        .card-lucro::before {
+        .card-lucro::after {
             content: '';
-            position: absolute; inset: 0;
-            background: radial-gradient(ellipse at 50% 0%, rgba(61,126,255,0.08) 0%, transparent 70%);
-            pointer-events: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: var(--placa);
+            transition: background 0.5s;
         }
-        .card-lucro.meta-atingida {
-            border-color: rgba(0,214,143,0.4);
-            box-shadow: var(--glow-green);
-        }
-        .card-lucro.meta-atingida::before {
-            background: radial-gradient(ellipse at 50% 0%, rgba(0,214,143,0.12) 0%, transparent 70%);
+        .card-lucro.meta .card-lucro::after { background: var(--faixa); }
+        .card-lucro.meta {
+            border-color: rgba(245,197,24,0.25);
         }
 
         .lucro-label {
-            font-size: 11px; font-weight: 600; text-transform: uppercase;
-            letter-spacing: 1px; color: var(--muted); margin-bottom: 4px;
+            font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1.2px;
+            color: var(--muted); margin-bottom: 8px;
         }
-        .lucro-valor {
-            font-size: 44px; font-weight: 900; letter-spacing: -2px;
-            line-height: 1; transition: color 0.4s;
+        .lucro-num {
+            font-size: 48px; font-weight: 700;
+            letter-spacing: -3px; line-height: 1;
+            transition: color 0.3s;
         }
-        .lucro-valor.pos { color: var(--green); }
-        .lucro-valor.neg { color: var(--red); }
+        .lucro-num.pos { color: var(--lucro); }
+        .lucro-num.neg { color: var(--gasto); }
+        .lucro-num.zero { color: var(--muted); }
 
-        /* Barra de meta */
-        .meta-bar-wrap { margin-top: 16px; }
-        .meta-bar-label {
-            display: flex; justify-content: space-between;
-            font-size: 11px; color: var(--muted); margin-bottom: 6px;
+        .meta-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 16px; margin-bottom: 8px;
         }
-        .meta-bar-bg {
-            height: 4px; background: rgba(255,255,255,0.06);
+        .meta-txt { font-size: 11px; color: var(--muted); }
+        .meta-pct { font-size: 11px; font-weight: 700; color: var(--faixa); }
+
+        .barra-bg {
+            height: 3px; background: var(--placa);
             border-radius: 99px; overflow: hidden;
         }
-        .meta-bar-fill {
-            height: 100%; background: var(--green);
+        .barra-fill {
+            height: 100%; background: var(--faixa);
             border-radius: 99px;
             transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
-            box-shadow: 0 0 8px rgba(0,214,143,0.6);
         }
 
-        /* Cards secundários */
-        .cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        /* Cards mini */
+        .cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
 
         .card-mini {
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: var(--radius); padding: 18px;
+            background: var(--concreto);
+            border: 1px solid var(--borda);
+            border-radius: 16px;
+            padding: 16px;
         }
-        .card-mini h3 {
-            font-size: 11px; font-weight: 600; text-transform: uppercase;
-            letter-spacing: 0.8px; color: var(--muted); margin-bottom: 8px;
+        .card-mini-label {
+            font-size: 10px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1.2px;
+            color: var(--muted); margin-bottom: 8px;
         }
-        .card-mini .val {
-            font-size: 22px; font-weight: 800; letter-spacing: -0.5px;
+        .card-mini-val {
+            font-size: 22px; font-weight: 700; letter-spacing: -1px;
         }
-        .val.pos { color: var(--green); }
-        .val.neg { color: var(--red); }
+        .c-pos { color: var(--lucro); }
+        .c-neg { color: var(--gasto); }
 
         /* Timer */
         .card-timer {
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: var(--radius); padding: 16px 20px;
+            background: var(--concreto);
+            border: 1px solid var(--borda);
+            border-radius: 16px;
+            padding: 14px 16px;
             display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
         }
-        .timer-info { display: flex; flex-direction: column; gap: 2px; }
-        .timer-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
-        .timer-val { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
-        .timer-cost { font-size: 12px; color: var(--muted); }
-
+        .timer-bloco { display: flex; flex-direction: column; gap: 2px; }
+        .timer-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+        .timer-num { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
+        .timer-custo { font-size: 11px; color: var(--muted); }
         .btn-timer {
-            background: var(--surface); border: 1px solid var(--border);
-            color: var(--text); padding: 10px 18px;
-            border-radius: 12px; font-size: 14px; font-weight: 700;
+            background: var(--placa);
+            border: 1px solid var(--borda);
+            color: var(--texto);
+            padding: 9px 16px;
+            border-radius: 10px;
+            font-size: 13px; font-weight: 700;
             font-family: inherit; cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
         }
-        .btn-timer.running {
-            background: rgba(255,77,109,0.15);
-            border-color: rgba(255,77,109,0.4);
-            color: var(--red);
+        .btn-timer.on {
+            background: rgba(255,107,43,0.12);
+            border-color: rgba(255,107,43,0.35);
+            color: var(--gasto);
         }
 
         /* ── ATALHOS ── */
-        .shortcuts-wrap {
-            width: 100%; max-width: 480px;
-            margin-bottom: 16px;
+        .secao-label {
+            font-size: 10px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1.2px;
+            color: var(--muted); margin-bottom: 10px; padding-left: 2px;
         }
-        .shortcuts-label {
-            font-size: 11px; font-weight: 600; text-transform: uppercase;
-            letter-spacing: 0.8px; color: var(--muted);
-            margin-bottom: 10px; padding-left: 4px;
+        .atalhos-wrap { width: 100%; max-width: 480px; margin-bottom: 14px; }
+        .atalhos {
+            display: flex; gap: 8px;
+            overflow-x: auto; padding-bottom: 4px;
+            scrollbar-width: none;
         }
-        .shortcuts {
-            display: flex; gap: 8px; overflow-x: auto;
-            padding-bottom: 4px; scrollbar-width: none;
-        }
-        .shortcuts::-webkit-scrollbar { display: none; }
-        .shortcut-btn {
-            background: var(--card); border: 1px solid var(--border);
-            color: var(--text); white-space: nowrap;
-            padding: 10px 16px; border-radius: 12px;
+        .atalhos::-webkit-scrollbar { display: none; }
+        .atalho {
+            background: var(--concreto);
+            border: 1px solid var(--borda);
+            color: var(--texto); white-space: nowrap;
+            padding: 9px 14px; border-radius: 10px;
             font-size: 13px; font-weight: 600; font-family: inherit;
             cursor: pointer; flex-shrink: 0;
-            transition: all 0.15s;
+            transition: all 0.12s;
         }
-        .shortcut-btn:active { background: rgba(255,77,109,0.15); border-color: var(--red); }
+        .atalho:active { background: rgba(255,107,43,0.14); border-color: var(--gasto); }
 
-        /* ── INPUT CONTAINER ── */
-        .input-container {
+        /* ── TECLADO ── */
+        .teclado-wrap {
             width: 100%; max-width: 480px;
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: 28px; padding: 24px;
+            background: var(--concreto);
+            border: 1px solid var(--borda);
+            border-radius: 22px;
+            padding: 22px 20px;
             display: flex; flex-direction: column; align-items: center;
+            margin-bottom: 14px;
         }
 
-        .tabs {
-            display: flex; background: rgba(0,0,0,0.25);
-            border-radius: 99px; padding: 4px;
-            width: 100%; margin-bottom: 20px; gap: 4px;
+        .abas {
+            display: flex;
+            background: var(--placa);
+            border-radius: 99px; padding: 3px;
+            width: 100%; margin-bottom: 18px;
         }
-        .tab {
+        .aba {
             flex: 1; background: none; border: none;
-            color: var(--muted); padding: 12px;
+            color: var(--muted); padding: 11px;
             font-size: 14px; font-weight: 700;
             font-family: inherit; border-radius: 99px;
-            cursor: pointer; transition: all 0.2s;
+            cursor: pointer; transition: all 0.18s;
         }
-        .tab.on-ganho  { background: var(--green); color: #000; }
-        .tab.on-gasto  { background: var(--red);   color: white; }
+        .aba.ganho-on { background: var(--lucro); color: #000; }
+        .aba.gasto-on { background: var(--gasto); color: #fff; }
 
-        /* Voz */
-        .voice-btn {
-            width: 100%; margin-bottom: 16px;
-            background: var(--surface); border: 1px solid var(--border);
-            color: var(--muted); padding: 12px;
-            border-radius: 14px; font-size: 14px; font-weight: 600;
+        .btn-voz {
+            width: 100%; margin-bottom: 14px;
+            background: var(--placa); border: 1px solid var(--borda);
+            color: var(--muted); padding: 11px;
+            border-radius: 12px; font-size: 13px; font-weight: 600;
             font-family: inherit; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px;
-            transition: all 0.2s;
         }
-        .voice-btn.listening {
-            background: rgba(255,77,109,0.12);
-            border-color: rgba(255,77,109,0.4);
-            color: var(--red);
-        }
+        .btn-voz.ouvindo { background: rgba(255,107,43,0.1); border-color: rgba(255,107,43,0.4); color: var(--gasto); }
 
-        .display {
-            font-size: 46px; font-weight: 900; letter-spacing: -2px;
-            margin-bottom: 24px; height: 56px;
-            display: flex; align-items: center; justify-content: center;
+        .display-val {
+            font-size: 52px; font-weight: 700;
+            letter-spacing: -3px; margin-bottom: 22px;
+            height: 60px; display: flex; align-items: center; justify-content: center;
             font-variant-numeric: tabular-nums;
-            transition: color 0.2s;
         }
-        .display.ganho { color: var(--green); }
-        .display.gasto { color: var(--red); }
+        .display-val.ganho { color: var(--lucro); }
+        .display-val.gasto { color: var(--gasto); }
 
-        .keyboard {
+        .teclado {
             display: grid; grid-template-columns: repeat(3, 1fr);
-            gap: 12px; width: 100%;
+            gap: 10px; width: 100%;
         }
         .key {
-            background: var(--surface); border: 1px solid var(--border);
-            color: var(--text); font-size: 24px; font-weight: 700;
-            font-family: inherit; border-radius: 99px; height: 64px;
+            background: var(--placa); border: 1px solid var(--borda);
+            color: var(--texto); font-size: 26px; font-weight: 700;
+            font-family: inherit; border-radius: 99px; height: 66px;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; user-select: none;
-            transition: background 0.1s, transform 0.1s;
+            transition: all 0.09s;
         }
-        .key:active { background: rgba(255,255,255,0.1); transform: scale(0.96); }
-        .key.confirm {
-            background: var(--accent);
-            color: white;
-            box-shadow: var(--glow-blue);
+        .key:active { background: rgba(255,255,255,0.09); transform: scale(0.95); }
+        .key.ok {
+            background: var(--faixa); color: #000;
+            border-color: var(--faixa);
         }
-        .key.confirm:active { background: #2563eb; }
+        .key.ok:active { opacity: 0.85; }
 
-        /* ── GPS / COPILOTO ── */
-        .copiloto-wrap {
-            width: 100%; max-width: 480px;
-            margin-top: 16px;
-        }
-        .copiloto-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 10px; padding: 0 4px;
-        }
-        .copiloto-header span {
-            font-size: 11px; font-weight: 600; text-transform: uppercase;
-            letter-spacing: 0.8px; color: var(--muted);
-        }
-
-        .gps-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        /* ── COPILOTO ── */
+        .copiloto-wrap { width: 100%; max-width: 480px; margin-bottom: 14px; }
+        .gps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .gps-btn {
-            background: var(--card); border: 1px solid var(--border);
-            color: var(--text); padding: 14px 16px;
-            border-radius: 16px; font-size: 13px; font-weight: 600;
-            font-family: inherit; cursor: pointer;
-            display: flex; align-items: center; gap: 10px;
-            transition: all 0.15s;
+            background: var(--concreto); border: 1px solid var(--borda);
+            color: var(--texto); padding: 14px 14px 12px;
+            border-radius: 14px; font-family: inherit; cursor: pointer;
+            display: flex; flex-direction: column; gap: 6px;
+            transition: all 0.12s; text-align: left;
         }
-        .gps-btn:active { background: rgba(61,126,255,0.15); border-color: var(--accent); }
-        .gps-icon { font-size: 20px; }
+        .gps-btn:active { background: var(--placa); border-color: rgba(245,197,24,0.3); }
+        .gps-ico { font-size: 22px; line-height: 1; }
+        .gps-nome { font-size: 13px; font-weight: 700; }
+        .gps-desc { font-size: 11px; color: var(--muted); }
 
         /* ── MOTIVACIONAL ── */
         .motivacional {
             width: 100%; max-width: 480px;
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: var(--radius); padding: 14px 18px;
-            margin-top: 16px;
-            display: flex; align-items: center; gap: 12px;
+            background: var(--concreto); border: 1px solid var(--borda);
+            border-radius: 14px; padding: 14px 16px;
+            margin-bottom: 14px;
+            display: flex; align-items: flex-start; gap: 12px;
         }
-        .motivacional .emoji { font-size: 22px; }
-        .motivacional p { font-size: 13px; color: var(--muted); line-height: 1.5; }
-        .motivacional p strong { color: var(--text); }
+        .motiv-ico { font-size: 20px; margin-top: 1px; }
+        .motiv-txt { font-size: 13px; color: var(--muted); line-height: 1.55; }
+        .motiv-txt strong { color: var(--texto); font-weight: 600; }
 
         /* ── HISTÓRICO ── */
-        .historico-wrap {
-            width: 100%; max-width: 480px;
-            margin-top: 16px;
-        }
-        .historico-header {
-            font-size: 11px; font-weight: 600; text-transform: uppercase;
-            letter-spacing: 0.8px; color: var(--muted);
-            margin-bottom: 10px; padding: 0 4px;
-        }
-        .historico-list { display: flex; flex-direction: column; gap: 8px; }
+        .historico-wrap { width: 100%; max-width: 480px; }
+        .hist-lista { display: flex; flex-direction: column; gap: 8px; }
         .hist-item {
-            background: var(--card); border: 1px solid var(--border);
-            border-radius: 14px; padding: 14px 16px;
+            background: var(--concreto); border: 1px solid var(--borda);
+            border-radius: 12px; padding: 13px 16px;
             display: flex; justify-content: space-between; align-items: center;
         }
         .hist-data { font-size: 13px; color: var(--muted); }
-        .hist-lucro { font-size: 16px; font-weight: 800; }
+        .hist-val { font-size: 16px; font-weight: 700; letter-spacing: -0.5px; }
 
-        /* Scrollbar global */
-        ::-webkit-scrollbar { width: 0; }
+        /* Seção */
+        .secao { width: 100%; max-width: 480px; margin-bottom: 6px; }
     </style>
 </head>
 <body>
 
-<!-- ── LOGIN OVERLAY ── -->
+<!-- LOGIN -->
 <div id="login-overlay">
-    <div class="login-logo">MOVVO</div>
+    <div class="login-marca">MOVVO</div>
+    <div class="login-tagline">SEU CORRE. SEU DINHEIRO.</div>
     <div class="login-card">
-        <h2 id="login-title">Entrar</h2>
-        <p id="login-subtitle">Insira suas credenciais para acessar seu painel privado.</p>
-        <div id="login-body"></div>
+        <h2 id="login-titulo">Entrar</h2>
+        <p id="login-sub">Acesse seu painel privado.</p>
+        <div id="login-corpo"></div>
     </div>
 </div>
 
-<!-- ── DYNAMIC ISLAND ── -->
+<!-- ISLAND -->
 <div class="island-wrap">
-    <div class="island" id="island">
-        <span id="island-txt">MOVVO</span>
-    </div>
+    <div class="island" id="island"><span id="island-txt">MOVVO</span></div>
 </div>
 
-<!-- ── HEADER ── -->
+<!-- HEADER -->
 <header>
-    <div class="header-left">
-        <h1>MOVVO</h1>
-        <p id="txt-welcome">Carregando...</p>
+    <div>
+        <div class="header-logo">MOVVO</div>
+        <div class="header-sub" id="txt-bem-vindo">Carregando...</div>
     </div>
     <div class="header-actions">
-        <div class="icon-btn" id="privacy-btn" onclick="togglePrivacy()" title="Modo privacidade">👁</div>
-        <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+        <div class="ico-btn" id="btn-privacy" onclick="togglePrivacy()">👁</div>
+        <button class="btn-sair" onclick="fazerLogout()">Sair</button>
     </div>
 </header>
 
-<!-- ── DASHBOARD ── -->
-<div class="dashboard">
+<!-- CARDS -->
+<div class="cards">
 
-    <!-- Card lucro principal -->
     <div class="card-lucro" id="card-lucro">
-        <div class="lucro-label" id="lucro-data-label">Lucro de hoje</div>
-        <div class="lucro-valor blur-target" id="lucro-total">R$ 0,00</div>
-        <div class="meta-bar-wrap">
-            <div class="meta-bar-label">
-                <span>Meta diária</span>
-                <span id="meta-label">R$ 0,00 / R$ 200,00</span>
-            </div>
-            <div class="meta-bar-bg">
-                <div class="meta-bar-fill" id="meta-bar" style="width:0%"></div>
-            </div>
+        <div class="lucro-label">Lucro do dia</div>
+        <div class="lucro-num zero blur-target" id="lucro-num">R$ 0,00</div>
+        <div class="meta-row">
+            <span class="meta-txt" id="meta-txt">Meta: R$ 200,00</span>
+            <span class="meta-pct" id="meta-pct">0%</span>
         </div>
+        <div class="barra-bg"><div class="barra-fill" id="barra" style="width:0%"></div></div>
     </div>
 
-    <!-- Ganhos e Gastos -->
     <div class="cards-row">
         <div class="card-mini">
-            <h3>Faturamento</h3>
-            <div class="val pos blur-target" id="ganhos-total">R$ 0,00</div>
+            <div class="card-mini-label">Faturamento</div>
+            <div class="card-mini-val c-pos blur-target" id="ganhos-num">R$ 0,00</div>
         </div>
         <div class="card-mini">
-            <h3>Gastos</h3>
-            <div class="val neg blur-target" id="gastos-total">R$ 0,00</div>
+            <div class="card-mini-label">Gastos</div>
+            <div class="card-mini-val c-neg blur-target" id="gastos-num">R$ 0,00</div>
         </div>
     </div>
 
-    <!-- Timer de custo/hora -->
     <div class="card-timer">
-        <div class="timer-info">
-            <span class="timer-label">⏱ Custo / Hora</span>
-            <span class="timer-val" id="timer-display">00:00:00</span>
-            <span class="timer-cost" id="timer-cost">R$ 0,00 / h hoje</span>
+        <div class="timer-bloco">
+            <span class="timer-lbl">⏱ Custo / hora</span>
+            <span class="timer-num" id="timer-num">00:00:00</span>
+            <span class="timer-custo" id="timer-custo">R$ 0,00 / h</span>
         </div>
         <button class="btn-timer" id="btn-timer" onclick="toggleTimer()">Iniciar</button>
     </div>
 
 </div>
 
-<!-- ── ATALHOS DE GASTO ── -->
-<div class="shortcuts-wrap" id="shortcuts-wrap">
-    <div class="shortcuts-label">Atalhos de Gasto</div>
-    <div class="shortcuts">
-        <button class="shortcut-btn" onclick="atalhoGasto(5000)">⛽ R$50 Combustível</button>
-        <button class="shortcut-btn" onclick="atalhoGasto(2500)">🍽 R$25 Almoço</button>
-        <button class="shortcut-btn" onclick="atalhoGasto(1500)">☕ R$15 Café</button>
-        <button class="shortcut-btn" onclick="atalhoGasto(1000)">🅿️ R$10 Estacionamento</button>
-        <button class="shortcut-btn" onclick="atalhoGasto(3000)">🔧 R$30 Manutenção</button>
+<!-- ATALHOS (só gasto) -->
+<div class="atalhos-wrap" id="atalhos-wrap" style="display:none">
+    <div class="secao-label">Atalhos de gasto</div>
+    <div class="atalhos">
+        <button class="atalho" onclick="atalhoGasto(5000)">⛽ R$50 Combustível</button>
+        <button class="atalho" onclick="atalhoGasto(2500)">🍽 R$25 Almoço</button>
+        <button class="atalho" onclick="atalhoGasto(1500)">☕ R$15 Café</button>
+        <button class="atalho" onclick="atalhoGasto(1000)">🅿️ R$10 Estacionamento</button>
+        <button class="atalho" onclick="atalhoGasto(3000)">🔧 R$30 Manutenção</button>
     </div>
 </div>
 
-<!-- ── TECLADO ── -->
-<div class="input-container">
-
-    <div class="tabs">
-        <button class="tab on-ganho" id="tab-ganho" onclick="mudarFluxo('ganho')">Faturamento</button>
-        <button class="tab" id="tab-gasto" onclick="mudarFluxo('gasto')">Gasto</button>
+<!-- TECLADO -->
+<div class="teclado-wrap">
+    <div class="abas">
+        <button class="aba ganho-on" id="aba-ganho" onclick="mudarFluxo('ganho')">Faturamento</button>
+        <button class="aba" id="aba-gasto" onclick="mudarFluxo('gasto')">Gasto</button>
     </div>
 
-    <button class="voice-btn" id="voice-btn" onclick="toggleVoz()">
-        <span>🎙</span>
-        <span id="voice-label">Registrar por voz</span>
+    <button class="btn-voz" id="btn-voz" onclick="toggleVoz()">
+        <span>🎙</span><span id="voz-label">Registrar por voz</span>
     </button>
 
-    <div class="display ganho" id="valor-display">R$ 0,00</div>
+    <div class="display-val ganho" id="display-val">R$ 0,00</div>
 
-    <div class="keyboard">
+    <div class="teclado">
         <div class="key" onclick="digitar(1)">1</div>
         <div class="key" onclick="digitar(2)">2</div>
         <div class="key" onclick="digitar(3)">3</div>
@@ -555,527 +569,420 @@
         <div class="key" onclick="digitar(9)">9</div>
         <div class="key" onclick="digitar('C')">C</div>
         <div class="key" onclick="digitar(0)">0</div>
-        <div class="key confirm" onclick="processarEnvio()">✓</div>
+        <div class="key ok" onclick="processarEnvio()">✓</div>
     </div>
-
 </div>
 
-<!-- ── COPILOTO GPS ── -->
+<!-- COPILOTO -->
 <div class="copiloto-wrap">
-    <div class="copiloto-header">
-        <span>🧭 Copiloto</span>
-    </div>
-    <div class="gps-btns">
+    <div class="secao-label">Copiloto</div>
+    <div class="gps-grid">
         <button class="gps-btn" onclick="irAbastecer()">
-            <span class="gps-icon">⛽</span>
-            <div>
-                <div style="font-size:13px;font-weight:700">Abastecer</div>
-                <div style="font-size:11px;color:var(--muted)">Postos próximos</div>
-            </div>
+            <span class="gps-ico">⛽</span>
+            <span class="gps-nome">Abastecer</span>
+            <span class="gps-desc">Postos próximos</span>
         </button>
-        <button class="gps-btn" onclick="irParaBase()">
-            <span class="gps-icon">🏠</span>
-            <div>
-                <div style="font-size:13px;font-weight:700">Ir pra Base</div>
-                <div style="font-size:11px;color:var(--muted)">Rota para casa</div>
-            </div>
+        <button class="gps-btn" onclick="irBase()">
+            <span class="gps-ico">🏠</span>
+            <span class="gps-nome">Ir pra base</span>
+            <span class="gps-desc">Rota para casa</span>
         </button>
         <button class="gps-btn" onclick="abrirWaze()">
-            <span class="gps-icon">🗺</span>
-            <div>
-                <div style="font-size:13px;font-weight:700">Waze</div>
-                <div style="font-size:11px;color:var(--muted)">Abrir navegação</div>
-            </div>
+            <span class="gps-ico">🗺</span>
+            <span class="gps-nome">Waze</span>
+            <span class="gps-desc">Abrir navegação</span>
         </button>
-        <button class="gps-btn" onclick="abrirGoogleMaps()">
-            <span class="gps-icon">📍</span>
-            <div>
-                <div style="font-size:13px;font-weight:700">Google Maps</div>
-                <div style="font-size:11px;color:var(--muted)">Ver mapa</div>
-            </div>
+        <button class="gps-btn" onclick="abrirMaps()">
+            <span class="gps-ico">📍</span>
+            <span class="gps-nome">Google Maps</span>
+            <span class="gps-desc">Ver mapa</span>
         </button>
     </div>
 </div>
 
-<!-- ── MENSAGEM MOTIVACIONAL ── -->
-<div class="motivacional" id="motivacional">
-    <span class="emoji" id="motiv-emoji">💡</span>
-    <p id="motiv-text"><strong>Carregando...</strong></p>
+<!-- MOTIVACIONAL -->
+<div class="motivacional" style="margin-top:14px">
+    <span class="motiv-ico" id="motiv-ico">💡</span>
+    <p class="motiv-txt" id="motiv-txt">Carregando...</p>
 </div>
 
-<!-- ── HISTÓRICO ── -->
-<div class="historico-wrap" id="historico-wrap" style="display:none">
-    <div class="historico-header">Últimos 7 dias</div>
-    <div class="historico-list" id="historico-list"></div>
+<!-- HISTÓRICO -->
+<div class="historico-wrap" id="historico-wrap" style="display:none;margin-top:14px">
+    <div class="secao-label" style="margin-bottom:10px">Últimos 7 dias</div>
+    <div class="hist-lista" id="hist-lista"></div>
 </div>
-
 
 <script>
-// ── CONFIG ──
-const API_URL = "https://script.google.com/macros/s/AKfycbwOfnzT0rPH6HJsYn5C3wdYbyOnev8JC10k5H2V2025ksDP5cqKMmwvGNiw4N23UJfkhg/exec";
+const API = "https://script.google.com/macros/s/AKfycbwOfnzT0rPH6HJsYn5C3wdYbyOnev8JC10k5H2V2025ksDP5cqKMmwvGNiw4N23UJfkhg/exec";
 
-// ── ESTADO ──
-let fluxo        = 'ganho';
-let inputVal     = 0; // centavos
-let metaDiaria   = 200;
-let timerInterval= null;
-let timerAtivo   = false;
-let timerInicio  = null;
-let timerSegundos= 0;
-let gastosHoje   = 0;
-let loginMode    = 'completo';
-let pinDigitado  = '';
-let recognizing  = false;
-let recognition  = null;
+let fluxo = 'ganho', inputVal = 0, meta = 200;
+let timerAtivo = false, timerInicio = null, timerSeg = 0, timerIv = null;
+let gastosHoje = 0;
+let recognizing = false, recognition = null;
+let pinDigitado = '';
 
-// ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
-    mostrarMensagemMotivacional();
+    motivacional();
     verificarAuth();
 });
 
-// ══════════════════════════════════════════════
-//  AUTENTICAÇÃO
-// ══════════════════════════════════════════════
+// ── AUTH ──
 
 function verificarAuth() {
-    const usuario = localStorage.getItem('movvo_user');
-    const wrapper = document.getElementById('login-body');
+    const user = localStorage.getItem('movvo_user');
+    const corpo = document.getElementById('login-corpo');
 
-    if (usuario) {
-        loginMode = 'pin';
+    if (user) {
+        const nome = localStorage.getItem('movvo_nome') || user;
+        document.getElementById('login-titulo').innerText = 'Bloqueio rápido';
+        document.getElementById('login-sub').innerText = `Olá, ${nome}. Digite seu PIN.`;
         pinDigitado = '';
-        document.getElementById('login-title').innerText = 'Bloqueio Rápido';
-        document.getElementById('login-subtitle').innerText = `Olá, ${usuario}. Digite seu PIN para entrar.`;
-
-        wrapper.innerHTML = `
-            <div class="pin-grid">
-                <div class="pin-dot" id="pd0">•</div>
-                <div class="pin-dot" id="pd1">•</div>
-                <div class="pin-dot" id="pd2">•</div>
-                <div class="pin-dot" id="pd3">•</div>
+        corpo.innerHTML = `
+            <div class="pin-dots">
+                <div class="pin-dot" id="pd0"></div>
+                <div class="pin-dot" id="pd1"></div>
+                <div class="pin-dot" id="pd2"></div>
+                <div class="pin-dot" id="pd3"></div>
             </div>
-            <div class="pin-keyboard">
+            <div class="pin-teclado">
                 ${[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map(k =>
-                    k === ''
-                    ? `<div></div>`
-                    : `<div class="pkey ${k==='⌫'?'del':''}" onclick="digitarPin('${k}')">${k}</div>`
+                    k==='' ? '<div></div>'
+                    : `<div class="pkey${k==='⌫'?' del':''}" onclick="digitarPin('${k}')">${k}</div>`
                 ).join('')}
             </div>
+            <button class="btn-voltar" onclick="trocarConta()">Trocar conta</button>
         `;
     } else {
-        loginMode = 'completo';
-        document.getElementById('login-title').innerText = 'Entrar no MOVVO';
-        document.getElementById('login-subtitle').innerText = 'Insira seu e-mail e senha cadastrados.';
-
-        wrapper.innerHTML = `
-            <div class="field">
-                <label>E-mail</label>
-                <input type="email" id="login-email" placeholder="seu@email.com" inputmode="email">
-            </div>
-            <div class="field">
-                <label>Senha</label>
-                <input type="password" id="login-senha" placeholder="Sua senha">
-            </div>
-            <button class="btn-primary" onclick="fazerLogin()" id="btn-login">Entrar</button>
+        document.getElementById('login-titulo').innerText = 'Bem-vindo';
+        document.getElementById('login-sub').innerText = 'Seu corre. Seu dinheiro.';
+        corpo.innerHTML = `
+            <button class="btn-amarelo" onclick="telaLogin()">Entrar na minha conta</button>
+            <button class="btn-ghost" onclick="telaCadastro()">Criar nova conta</button>
         `;
-
-        document.getElementById('login-senha').addEventListener('keydown', e => {
-            if (e.key === 'Enter') fazerLogin();
-        });
     }
 }
 
-function digitarPin(tecla) {
-    if (tecla === '⌫') {
-        pinDigitado = pinDigitado.slice(0, -1);
-    } else if (pinDigitado.length < 4) {
-        pinDigitado += tecla;
+function telaLogin() {
+    document.getElementById('login-titulo').innerText = 'Entrar';
+    document.getElementById('login-sub').innerText = 'Suas credenciais cadastradas.';
+    document.getElementById('login-corpo').innerHTML = `
+        <div class="field"><label>E-mail</label>
+            <input type="email" id="f-email" placeholder="seu@email.com" inputmode="email"></div>
+        <div class="field"><label>Senha</label>
+            <input type="password" id="f-senha" placeholder="Sua senha"></div>
+        <button class="btn-amarelo" onclick="fazerLogin()" id="btn-entrar">Entrar</button>
+        <button class="btn-voltar" onclick="verificarAuth()">← Voltar</button>
+    `;
+    document.getElementById('f-senha').addEventListener('keydown', e => { if(e.key==='Enter') fazerLogin(); });
+}
+
+function telaCadastro() {
+    document.getElementById('login-titulo').innerText = 'Criar conta';
+    document.getElementById('login-sub').innerText = 'O PIN é usado no bloqueio rápido de tela.';
+    document.getElementById('login-corpo').innerHTML = `
+        <div class="field"><label>Seu nome</label>
+            <input type="text" id="f-nome" placeholder="Ex: João Silva"></div>
+        <div class="field"><label>E-mail</label>
+            <input type="email" id="f-email" placeholder="seu@email.com" inputmode="email"></div>
+        <div class="field"><label>Senha</label>
+            <input type="password" id="f-senha" placeholder="Crie uma senha"></div>
+        <div class="field"><label>PIN de 4 dígitos</label>
+            <input type="password" id="f-pin" maxlength="4" pattern="\\d*" inputmode="numeric" placeholder="Ex: 1234"></div>
+        <button class="btn-amarelo" onclick="fazerCadastro()" id="btn-cad">Criar minha conta</button>
+        <button class="btn-voltar" onclick="verificarAuth()">← Voltar</button>
+    `;
+}
+
+function digitarPin(t) {
+    if (t === '⌫') { pinDigitado = pinDigitado.slice(0,-1); }
+    else if (pinDigitado.length < 4) { pinDigitado += t; }
+    for (let i=0;i<4;i++) {
+        const d = document.getElementById('pd'+i);
+        if (!d) continue;
+        d.classList.toggle('filled', i < pinDigitado.length);
     }
-    // Atualiza visual
-    for (let i = 0; i < 4; i++) {
-        const dot = document.getElementById('pd' + i);
-        if (!dot) continue;
-        if (i < pinDigitado.length) {
-            dot.classList.add('filled'); dot.innerText = '●';
-        } else {
-            dot.classList.remove('filled'); dot.innerText = '•';
-        }
-    }
-    if (pinDigitado.length === 4) {
-        setTimeout(validarPin, 150);
-    }
+    if (pinDigitado.length === 4) setTimeout(validarPin, 150);
 }
 
 function validarPin() {
     const email = localStorage.getItem('movvo_user');
-    island('Verificando PIN... 🔒');
-    fetch(`${API_URL}?acao=validar_pin&email=${enc(email)}&pin=${enc(pinDigitado)}`)
-        .then(r => r.json())
-        .then(d => {
-            if (d.sucesso) {
-                entrarNoApp(d.usuario || email);
-            } else {
-                island('PIN incorreto ❌');
+    notif('Verificando PIN... 🔒');
+    fetch(`${API}?acao=validar_pin&email=${enc(email)}&pin=${enc(pinDigitado)}`)
+        .then(r=>r.json()).then(d => {
+            if (d.sucesso) { entrar(d.usuario || email); }
+            else {
+                notif('PIN incorreto ❌');
                 pinDigitado = '';
-                for (let i = 0; i < 4; i++) {
-                    const dot = document.getElementById('pd' + i);
-                    if (dot) { dot.classList.remove('filled'); dot.innerText = '•'; }
-                }
+                for(let i=0;i<4;i++){const d=document.getElementById('pd'+i);if(d)d.classList.remove('filled');}
             }
-        })
-        .catch(() => island('Erro de conexão ❌'));
+        }).catch(()=>notif('Erro de conexão ❌'));
 }
 
 function fazerLogin() {
-    const email = (document.getElementById('login-email')?.value || '').trim();
-    const senha = (document.getElementById('login-senha')?.value || '').trim();
-    if (!email || !senha) { island('Preencha todos os campos ⚠️'); return; }
-
-    const btn = document.getElementById('btn-login');
-    btn.disabled = true; btn.innerText = 'Entrando...';
-    island('Validando credenciais... 🔒');
-
-    fetch(`${API_URL}?acao=login&email=${enc(email)}&senha=${enc(senha)}`)
-        .then(r => r.json())
-        .then(d => {
-            if (d.sucesso) {
-                localStorage.setItem('movvo_user', d.email || email);
-                localStorage.setItem('movvo_nome', d.usuario || email);
-                entrarNoApp(d.usuario || email);
+    const email = (document.getElementById('f-email')?.value||'').trim();
+    const senha = (document.getElementById('f-senha')?.value||'').trim();
+    if (!email||!senha){notif('Preencha todos os campos ⚠️');return;}
+    const btn = document.getElementById('btn-entrar');
+    btn.disabled=true; btn.innerText='Entrando...';
+    notif('Validando... 🔒');
+    fetch(`${API}?acao=login&email=${enc(email)}&senha=${enc(senha)}`)
+        .then(r=>r.json()).then(d=>{
+            if(d.sucesso){
+                localStorage.setItem('movvo_user', d.email||email);
+                localStorage.setItem('movvo_nome', d.usuario||email);
+                entrar(d.usuario||email);
             } else {
-                island(d.erro || 'Falha no login ❌');
-                btn.disabled = false; btn.innerText = 'Entrar';
+                notif(d.erro||'Falha no login ❌');
+                btn.disabled=false; btn.innerText='Entrar';
             }
-        })
-        .catch(() => {
-            island('Erro de conexão ❌');
-            btn.disabled = false; btn.innerText = 'Entrar';
-        });
+        }).catch(()=>{notif('Erro de conexão ❌');btn.disabled=false;btn.innerText='Entrar';});
 }
 
-function entrarNoApp(nome) {
+function fazerCadastro() {
+    const nome  = (document.getElementById('f-nome')?.value||'').trim();
+    const email = (document.getElementById('f-email')?.value||'').trim();
+    const senha = (document.getElementById('f-senha')?.value||'').trim();
+    const pin   = (document.getElementById('f-pin')?.value||'').trim();
+    if(!nome||!email||!senha||!pin){notif('Preencha todos os campos ⚠️');return;}
+    if(!/^\d{4}$/.test(pin)){notif('PIN deve ter 4 números ⚠️');return;}
+    const btn = document.getElementById('btn-cad');
+    btn.disabled=true; btn.innerText='Criando...';
+    notif('Cadastrando... ⚡');
+    fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({acao:'cadastrar',email,senha,pin,nome})})
+        .then(r=>r.json()).then(d=>{
+            if(d.status==='success'){
+                localStorage.setItem('movvo_user', d.email||email);
+                localStorage.setItem('movvo_nome', d.usuario||nome);
+                entrar(d.usuario||nome);
+            } else {
+                notif(d.message||'Erro ao criar conta ❌');
+                btn.disabled=false; btn.innerText='Criar minha conta';
+            }
+        }).catch(()=>{notif('Erro de conexão ❌');btn.disabled=false;btn.innerText='Criar minha conta';});
+}
+
+function entrar(nome) {
     document.getElementById('login-overlay').classList.add('hidden');
-    document.getElementById('txt-welcome').innerText = nome;
-    island('Bem-vindo, ' + nome + '! 🚀');
+    document.getElementById('txt-bem-vindo').innerText = nome;
+    notif('Bem-vindo, ' + nome + '! 🚀');
     carregarTotais();
     carregarHistorico();
 }
 
 function fazerLogout() {
-    if (!confirm('Sair da conta? Precisará de e-mail e senha no próximo acesso.')) return;
-    localStorage.clear();
-    location.reload();
+    if(!confirm('Sair da conta? Precisará de e-mail e senha no próximo acesso.')) return;
+    localStorage.clear(); location.reload();
 }
 
-// ══════════════════════════════════════════════
-//  DADOS
-// ══════════════════════════════════════════════
-
-function getEmail() {
-    return localStorage.getItem('movvo_user') || '';
+function trocarConta() {
+    if(!confirm('Trocar conta? O login atual será encerrado.')) return;
+    localStorage.clear(); verificarAuth();
 }
+
+// ── DADOS ──
+
+function email() { return localStorage.getItem('movvo_user')||''; }
 
 function carregarTotais() {
-    const email = getEmail();
-    if (!email) return;
-    fetch(`${API_URL}?acao=get_totais&email=${enc(email)}`)
-        .then(r => r.json())
-        .then(d => {
-            if (!d.sucesso) return;
-            metaDiaria = d.meta || 200;
-            gastosHoje = d.gastos || 0;
-
-            document.getElementById('ganhos-total').innerText = fmt(d.ganhos);
-            document.getElementById('gastos-total').innerText = fmt(d.gastos);
-
-            const lucroEl = document.getElementById('lucro-total');
-            lucroEl.innerText = fmt(d.lucro);
-            lucroEl.className = 'lucro-valor blur-target ' + (d.lucro >= 0 ? 'pos' : 'neg');
-
-            // Barra de meta
-            const pct = Math.min((d.lucro / metaDiaria) * 100, 100);
-            document.getElementById('meta-bar').style.width = Math.max(pct, 0) + '%';
-            document.getElementById('meta-label').innerText =
-                `${fmt(Math.max(d.lucro,0))} / ${fmt(metaDiaria)}`;
-
-            // Glow se atingiu
+    if(!email()) return;
+    fetch(`${API}?acao=get_totais&email=${enc(email())}`)
+        .then(r=>r.json()).then(d=>{
+            if(!d.sucesso) return;
+            meta = d.meta||200;
+            gastosHoje = d.gastos||0;
+            document.getElementById('ganhos-num').innerText = fmt(d.ganhos);
+            document.getElementById('gastos-num').innerText = fmt(d.gastos);
+            const el = document.getElementById('lucro-num');
+            el.innerText = fmt(d.lucro);
+            el.className = 'lucro-num blur-target ' + (d.lucro>0?'pos':d.lucro<0?'neg':'zero');
+            const pct = Math.min(Math.max((d.lucro/meta)*100,0),100);
+            document.getElementById('barra').style.width = pct+'%';
+            document.getElementById('meta-txt').innerText = `Meta: ${fmt(meta)}`;
+            document.getElementById('meta-pct').innerText = Math.round(pct)+'%';
             const card = document.getElementById('card-lucro');
-            if (d.lucro >= metaDiaria) {
-                card.classList.add('meta-atingida');
-                confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
-                island('🎉 Meta atingida! Bom trabalho!');
+            if(d.lucro>=meta){
+                card.classList.add('meta');
+                confetti({particleCount:120,spread:80,origin:{y:0.5}});
+                notif('🎉 Meta atingida! Pode ir pra casa.');
             } else {
-                card.classList.remove('meta-atingida');
-                island('Painel atualizado ⚡');
+                card.classList.remove('meta');
+                notif('Painel atualizado ⚡');
             }
-
-            // Custo/hora do timer
             atualizarCustoHora();
-        })
-        .catch(() => island('Erro ao carregar dados ❌'));
+        }).catch(()=>notif('Erro ao carregar ❌'));
 }
 
 function carregarHistorico() {
-    const email = getEmail();
-    if (!email) return;
-    fetch(`${API_URL}?acao=get_historico&email=${enc(email)}&dias=7`)
-        .then(r => r.json())
-        .then(d => {
-            if (!d.sucesso || !d.historico?.length) return;
-            document.getElementById('historico-wrap').style.display = 'block';
-            const list = document.getElementById('historico-list');
-            list.innerHTML = d.historico.map(h => `
+    if(!email()) return;
+    fetch(`${API}?acao=get_historico&email=${enc(email())}&dias=7`)
+        .then(r=>r.json()).then(d=>{
+            if(!d.sucesso||!d.historico?.length) return;
+            document.getElementById('historico-wrap').style.display='block';
+            document.getElementById('hist-lista').innerHTML = d.historico.map(h=>`
                 <div class="hist-item">
                     <span class="hist-data">${h.data}</span>
-                    <span class="hist-lucro ${h.lucro >= 0 ? 'pos' : 'neg'}">${fmt(h.lucro)}</span>
-                </div>
-            `).join('');
-        })
-        .catch(() => {});
+                    <span class="hist-val ${h.lucro>=0?'c-pos':'c-neg'}">${fmt(h.lucro)}</span>
+                </div>`).join('');
+        }).catch(()=>{});
 }
 
 function processarEnvio() {
-    if (inputVal === 0) { island('Digite um valor ⚠️'); return; }
-    const valor = inputVal / 100;
-    const ganhos = fluxo === 'ganho' ? valor : 0;
-    const gastos = fluxo === 'gasto' ? valor : 0;
-    const email  = getEmail();
-
-    island('Registrando... ⚡');
-
-    fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ acao: 'registrar', email, ganhos, gastos })
-    })
-    .then(r => r.json())
-    .then(d => {
-        if (d.status === 'success') {
-            if (fluxo === 'ganho') {
-                confetti({ particleCount: 80, spread: 60, origin: { y: 0.8 } });
-            }
-            inputVal = 0;
-            atualizarDisplay();
-            carregarTotais();
-        } else {
-            island('Erro ao salvar ❌');
-        }
-    })
-    .catch(() => island('Erro de conexão ❌'));
+    if(inputVal===0){notif('Digite um valor ⚠️');return;}
+    const valor = inputVal/100;
+    const ganhos = fluxo==='ganho'?valor:0;
+    const gastos = fluxo==='gasto'?valor:0;
+    notif('Registrando... ⚡');
+    fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({acao:'registrar',email:email(),ganhos,gastos})})
+        .then(r=>r.json()).then(d=>{
+            if(d.status==='success'){
+                if(fluxo==='ganho') confetti({particleCount:80,spread:60,origin:{y:0.8}});
+                inputVal=0; atualizarDisplay(); carregarTotais();
+            } else { notif('Erro ao salvar ❌'); }
+        }).catch(()=>notif('Erro de conexão ❌'));
 }
 
-// ══════════════════════════════════════════════
-//  TECLADO / INPUT
-// ══════════════════════════════════════════════
+// ── TECLADO ──
 
-function digitar(num) {
-    if (num === 'C') { inputVal = 0; }
-    else {
-        if (inputVal.toString().length >= 8) return;
-        inputVal = inputVal * 10 + num;
-    }
+function digitar(n) {
+    if(n==='C'){inputVal=0;}
+    else{if(inputVal.toString().length>=8)return; inputVal=inputVal*10+n;}
     atualizarDisplay();
 }
 
 function atualizarDisplay() {
-    const el = document.getElementById('valor-display');
-    el.innerText = fmt(inputVal / 100);
-    el.className = 'display ' + fluxo;
+    const el = document.getElementById('display-val');
+    el.innerText = fmt(inputVal/100);
+    el.className = 'display-val '+fluxo;
 }
 
-function mudarFluxo(tipo) {
-    fluxo = tipo;
-    document.getElementById('tab-ganho').className = 'tab' + (tipo==='ganho' ? ' on-ganho' : '');
-    document.getElementById('tab-gasto').className = 'tab' + (tipo==='gasto' ? ' on-gasto' : '');
-    document.getElementById('shortcuts-wrap').style.display = tipo === 'gasto' ? 'block' : 'none';
+function mudarFluxo(t) {
+    fluxo=t;
+    document.getElementById('aba-ganho').className='aba'+(t==='ganho'?' ganho-on':'');
+    document.getElementById('aba-gasto').className='aba'+(t==='gasto'?' gasto-on':'');
+    document.getElementById('atalhos-wrap').style.display=t==='gasto'?'block':'none';
     atualizarDisplay();
 }
 
-function atalhoGasto(centavos) {
-    inputVal = centavos;
-    atualizarDisplay();
-    processarEnvio();
-}
+function atalhoGasto(c) { inputVal=c; atualizarDisplay(); processarEnvio(); }
 
-// ══════════════════════════════════════════════
-//  TIMER
-// ══════════════════════════════════════════════
+// ── TIMER ──
 
 function toggleTimer() {
-    if (!timerAtivo) {
-        timerAtivo = true;
-        timerInicio = Date.now() - timerSegundos * 1000;
-        timerInterval = setInterval(tickTimer, 1000);
-        document.getElementById('btn-timer').innerText = 'Parar';
-        document.getElementById('btn-timer').classList.add('running');
+    if(!timerAtivo){
+        timerAtivo=true;
+        timerInicio=Date.now()-timerSeg*1000;
+        timerIv=setInterval(tickTimer,1000);
+        document.getElementById('btn-timer').innerText='Parar';
+        document.getElementById('btn-timer').classList.add('on');
     } else {
-        clearInterval(timerInterval);
-        timerAtivo = false;
-        document.getElementById('btn-timer').innerText = 'Retomar';
-        document.getElementById('btn-timer').classList.remove('running');
+        clearInterval(timerIv); timerAtivo=false;
+        document.getElementById('btn-timer').innerText='Retomar';
+        document.getElementById('btn-timer').classList.remove('on');
     }
 }
 
 function tickTimer() {
-    timerSegundos = Math.floor((Date.now() - timerInicio) / 1000);
-    const h = Math.floor(timerSegundos / 3600).toString().padStart(2,'0');
-    const m = Math.floor((timerSegundos % 3600) / 60).toString().padStart(2,'0');
-    const s = (timerSegundos % 60).toString().padStart(2,'0');
-    document.getElementById('timer-display').innerText = `${h}:${m}:${s}`;
+    timerSeg=Math.floor((Date.now()-timerInicio)/1000);
+    const h=Math.floor(timerSeg/3600).toString().padStart(2,'0');
+    const m=Math.floor((timerSeg%3600)/60).toString().padStart(2,'0');
+    const s=(timerSeg%60).toString().padStart(2,'0');
+    document.getElementById('timer-num').innerText=`${h}:${m}:${s}`;
     atualizarCustoHora();
 }
 
 function atualizarCustoHora() {
-    const horas = timerSegundos / 3600;
-    const custoHora = horas > 0 ? gastosHoje / horas : 0;
-    document.getElementById('timer-cost').innerText = `${fmt(custoHora)} / h hoje`;
+    const horas=timerSeg/3600;
+    const custo=horas>0?gastosHoje/horas:0;
+    document.getElementById('timer-custo').innerText=`${fmt(custo)} / h hoje`;
 }
 
-// ══════════════════════════════════════════════
-//  VOZ
-// ══════════════════════════════════════════════
+// ── VOZ ──
 
 function toggleVoz() {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        island('Voz não suportada neste navegador ❌');
-        return;
-    }
-    if (recognizing) {
-        recognition?.stop();
-        return;
-    }
-
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SR();
-    recognition.lang = 'pt-BR';
-    recognition.interimResults = false;
-
-    recognition.onstart = () => {
-        recognizing = true;
-        document.getElementById('voice-btn').classList.add('listening');
-        document.getElementById('voice-label').innerText = 'Ouvindo... fale agora!';
-        island('🎙 Escutando...');
+    if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){notif('Voz não suportada ❌');return;}
+    if(recognizing){recognition?.stop();return;}
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    recognition=new SR(); recognition.lang='pt-BR'; recognition.interimResults=false;
+    recognition.onstart=()=>{
+        recognizing=true;
+        document.getElementById('btn-voz').classList.add('ouvindo');
+        document.getElementById('voz-label').innerText='Ouvindo... fale agora!';
+        notif('🎙 Escutando...');
     };
-
-    recognition.onresult = (e) => {
-        const texto = e.results[0][0].transcript.toLowerCase();
-        processarComando(texto);
+    recognition.onresult=e=>processarComando(e.results[0][0].transcript.toLowerCase());
+    recognition.onend=()=>{
+        recognizing=false;
+        document.getElementById('btn-voz').classList.remove('ouvindo');
+        document.getElementById('voz-label').innerText='Registrar por voz';
     };
-
-    recognition.onend = () => {
-        recognizing = false;
-        document.getElementById('voice-btn').classList.remove('listening');
-        document.getElementById('voice-label').innerText = 'Registrar por voz';
-    };
-
     recognition.start();
 }
 
-function processarComando(texto) {
-    island(`Entendi: "${texto}"`);
-    // Detecta fluxo
-    if (/gast|cobustív|gasolina|almoç|café|estacion|manuten/.test(texto)) {
-        mudarFluxo('gasto');
-    } else {
-        mudarFluxo('ganho');
-    }
-    // Extrai número
-    const match = texto.match(/(\d+[\.,]?\d*)/);
-    if (match) {
-        const num = parseFloat(match[1].replace(',', '.'));
-        inputVal = Math.round(num * 100);
-        atualizarDisplay();
-        setTimeout(processarEnvio, 600);
-    } else {
-        island('Não entendi o valor ⚠️');
-    }
+function processarComando(txt) {
+    notif(`Entendi: "${txt}"`);
+    if(/gast|combustív|gasolina|almoç|café|estacion|manuten/.test(txt)) mudarFluxo('gasto');
+    else mudarFluxo('ganho');
+    const m=txt.match(/(\d+[\.,]?\d*)/);
+    if(m){inputVal=Math.round(parseFloat(m[1].replace(',','.'))*100);atualizarDisplay();setTimeout(processarEnvio,600);}
+    else notif('Não entendi o valor ⚠️');
 }
 
-// ══════════════════════════════════════════════
-//  PRIVACIDADE
-// ══════════════════════════════════════════════
+// ── PRIVACIDADE ──
 
 function togglePrivacy() {
     document.body.classList.toggle('privacy');
-    const btn = document.getElementById('privacy-btn');
-    btn.classList.toggle('active');
-    btn.innerText = document.body.classList.contains('privacy') ? '🙈' : '👁';
+    const b=document.getElementById('btn-privacy');
+    b.classList.toggle('on');
+    b.innerText=document.body.classList.contains('privacy')?'🙈':'👁';
 }
 
-// ══════════════════════════════════════════════
-//  GPS / COPILOTO
-// ══════════════════════════════════════════════
+// ── GPS ──
 
-function irAbastecer() {
-    window.open('https://www.google.com/maps/search/posto+de+gasolina+perto+de+mim', '_blank');
+function irAbastecer(){window.open('https://www.google.com/maps/search/posto+de+gasolina+perto+de+mim','_blank');}
+function irBase(){
+    let base=localStorage.getItem('movvo_base')||'';
+    if(!base){const a=prompt('Endereço da sua base/casa?');if(!a)return;localStorage.setItem('movvo_base',a);base=a;}
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${enc(base)}`,'_blank');
 }
-function irParaBase() {
-    const base = localStorage.getItem('movvo_base') || '';
-    if (!base) {
-        const addr = prompt('Qual o endereço da sua base / casa? (só precisa fazer isso uma vez)');
-        if (!addr) return;
-        localStorage.setItem('movvo_base', addr);
-    }
-    const dest = localStorage.getItem('movvo_base');
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${enc(dest)}`, '_blank');
-}
-function abrirWaze() {
-    window.open('https://waze.com', '_blank');
-}
-function abrirGoogleMaps() {
-    window.open('https://maps.google.com', '_blank');
-}
+function abrirWaze(){window.open('https://waze.com','_blank');}
+function abrirMaps(){window.open('https://maps.google.com','_blank');}
 
-// ══════════════════════════════════════════════
-//  MOTIVACIONAL
-// ══════════════════════════════════════════════
+// ── MOTIVACIONAL ──
 
-function mostrarMensagemMotivacional() {
-    const dia = new Date().getDay(); // 0=Dom ... 6=Sab
-    const hora = new Date().getHours();
-
-    const msgs = [
-        { emoji: '☀️', texto: 'Bom dia! <strong>Semana começando</strong> — cada corrida conta. Foco!' },
-        { emoji: '💪', texto: '<strong>Segunda pesada?</strong> Lembre: cada real salvo hoje vira liberdade amanhã.' },
-        { emoji: '📈', texto: '<strong>Quarta-feira</strong> é o coração da semana. Mantém o ritmo!' },
-        { emoji: '🔥', texto: '<strong>Quinta à noite</strong> tende a ter mais corridas. Aproveita!' },
-        { emoji: '🎯', texto: '<strong>Sexta com tarifa dinâmica alta!</strong> Ótimo momento pra correr mais.' },
-        { emoji: '🚀', texto: '<strong>Sábado = demanda alta.</strong> Mantenha o celular carregado e foco!' },
-        { emoji: '😌', texto: '<strong>Domingo</strong> — um dia mais calmo. Cuide da manutenção do veículo.' },
+function motivacional() {
+    const dia=new Date().getDay();
+    const h=new Date().getHours();
+    const msgs=[
+        {i:'🌅',t:'<strong>Segunda pesada?</strong> Cada corrida hoje é lucro que você vai agradecer no fim de semana.'},
+        {i:'💪',t:'<strong>Terça.</strong> A semana ainda tá quentinha — bom momento pra correr bastante.'},
+        {i:'📈',t:'<strong>Quarta</strong> é o coração da semana. Mantém o ritmo e o lucro aparece.'},
+        {i:'🔥',t:'<strong>Quinta à noite</strong> costuma movimentar. Segura o pique mais um pouco.'},
+        {i:'🎯',t:'<strong>Sexta com tarifa dinâmica alta!</strong> Agora é hora de fazer diferença.'},
+        {i:'🚀',t:'<strong>Sábado = demanda alta.</strong> Celular carregado, foco total.'},
+        {i:'😌',t:'<strong>Domingo.</strong> Aproveita o ritmo mais calmo pra checar manutenção do veículo.'},
     ];
-
-    let idx = dia;
-    if (hora >= 6 && hora < 12) idx = dia;
-    else if (hora >= 12 && hora < 18) idx = (dia + 1) % 7;
-    else idx = (dia + 2) % 7;
-
-    const m = msgs[idx];
-    document.getElementById('motiv-emoji').innerText = m.emoji;
-    document.getElementById('motiv-text').innerHTML = m.texto;
+    const turno = h<12?'manhã':h<18?'tarde':'noite';
+    const extra = turno==='noite'?' Cuidado na estrada à noite — segurança em primeiro lugar.':'';
+    const m=msgs[dia];
+    document.getElementById('motiv-ico').innerText=m.i;
+    document.getElementById('motiv-txt').innerHTML=m.t+extra;
 }
 
-// ══════════════════════════════════════════════
-//  UTILITÁRIOS
-// ══════════════════════════════════════════════
+// ── UTILS ──
 
-function fmt(v) {
-    return (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
+function fmt(v){return(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function enc(v){return encodeURIComponent(v||'');}
 
-function enc(v) { return encodeURIComponent(v || ''); }
-
-let islandTimer = null;
-function island(txt) {
+let islandTimer=null;
+function notif(txt){
     clearTimeout(islandTimer);
-    const el = document.getElementById('island');
-    document.getElementById('island-txt').innerText = txt;
-    el.classList.add('expanded');
-    islandTimer = setTimeout(() => el.classList.remove('expanded'), 3000);
+    const el=document.getElementById('island');
+    document.getElementById('island-txt').innerText=txt;
+    el.classList.add('exp');
+    islandTimer=setTimeout(()=>el.classList.remove('exp'),3200);
 }
-
-// Esconde atalhos por padrão (só aparece em modo Gasto)
-document.getElementById('shortcuts-wrap').style.display = 'none';
 </script>
 </body>
 </html>
