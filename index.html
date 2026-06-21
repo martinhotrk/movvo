@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MOVVO</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #1A1A1A; color: #FFFFFF; font-family: system-ui, sans-serif; }
+    .text-movvo-green { color: #00FF66; }
+    .bg-movvo-green { background-color: #00FF66; }
+  </style>
+</head>
+<body class="p-4 max-w-md mx-auto">
+
+  <!-- HEADER -->
+  <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
+    <h1 class="text-2xl font-black tracking-wider">MO<span class="text-movvo-green">VV</span>O</h1>
+    <span class="text-xs bg-gray-800 px-3 py-1 rounded-full text-gray-400">O Painel do Corre</span>
+  </div>
+
+  <!-- DASHBOARD DE LUCRO REAL -->
+  <div class="bg-zinc-900 p-5 rounded-2xl border border-gray-800 mb-6 shadow-xl">
+    <p class="text-xs uppercase tracking-widest text-gray-400 font-semibold">Seu Lucro Real Limpo</p>
+    <h2 id="lucro-real" class="text-4xl font-black text-movvo-green mt-1">Carregando...</h2>
+    
+    <div class="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-800">
+      <div>
+        <p class="text-xs text-gray-400">Faturamento Bruto</p>
+        <p id="total-ganhos" class="text-lg font-bold text-white">R$ 0,00</p>
+      </div>
+      <div>
+        <p class="text-xs text-gray-400">Custos do Dia</p>
+        <p id="total-gastos" class="text-lg font-bold text-red-500">R$ 0,00</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORMULÁRIO DE LANÇAMENTO RÁPIDO -->
+  <div class="bg-zinc-900 p-5 rounded-2xl border border-gray-800 shadow-xl">
+    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">⚡ Lançar Novo Valor</h3>
+    
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs text-gray-400 mb-1">Quanto entrou no App? (Bruto)</label>
+        <input type="number" id="ganhos-input" step="0.01" placeholder="Ex: 250.00" class="w-full bg-zinc-800 border border-gray-700 rounded-xl p-3 text-xl font-bold focus:outline-none focus:border-movvo-green text-white">
+      </div>
+      
+      <div>
+        <label class="block text-xs text-gray-400 mb-1">Quanto gastou? (Combustível/Comida)</label>
+        <input type="number" id="gastos-input" step="0.01" placeholder="Ex: 80.00" class="w-full bg-zinc-800 border border-gray-700 rounded-xl p-3 text-xl font-bold focus:outline-none focus:border-red-500 text-white">
+      </div>
+      
+      <button onclick="enviarDados()" id="btn-salvar" class="w-full bg-movvo-green text-black font-black text-lg p-4 rounded-xl active:scale-95 transition-transform shadow-lg uppercase tracking-wider mt-2">
+        Salvar o Corre
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // !! ATENÇÃO: SUBSTITUA A URL ABAIXO PELA SUA URL DO APPS SCRIPT !!
+    const API_URL = "COLE_AQUI_A_URL_DO_SEU_APPS_SCRIPT";
+
+    window.onload = function() {
+      carregarTotais();
+    };
+
+    function carregarTotais() {
+      fetch(API_URL)
+        .then(response => response.json())
+        .then(totais => {
+          document.getElementById('lucro-real').innerText = 'R$ ' + parseFloat(totais.lucro).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+          document.getElementById('total-ganhos').innerText = 'R$ ' + parseFloat(totais.ganhos).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+          document.getElementById('total-gastos').innerText = 'R$ ' + parseFloat(totais.gastos).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+        })
+        .catch(err => {
+          document.getElementById('lucro-real').innerText = "Erro ao carregar";
+          console.error(err);
+        });
+    }
+
+    function enviarDados() {
+      var ganhos = document.getElementById('ganhos-input').value;
+      var gastos = document.getElementById('gastos-input').value;
+      
+      if (!ganhos) { alert('Insira pelo menos o ganho do app!'); return; }
+      if (!gastos) gastos = 0;
+      
+      var btn = document.getElementById('btn-salvar');
+      btn.innerText = "Salvando...";
+      btn.disabled = true;
+      
+      fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors", // Evita problemas de política de CORS entre domínios
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ganhos: ganhos, gastos: gastos })
+      })
+      .then(() => {
+        // Como o modo no-cors não traz resposta legível por segurança, 
+        // nós esperamos 1.5s para a planilha processar e recarregamos a tela
+        setTimeout(() => {
+          carregarTotais();
+          document.getElementById('ganhos-input').value = '';
+          document.getElementById('gastos-input').value = '';
+          btn.innerText = "Salvar o Corre";
+          btn.disabled = false;
+        }, 1500);
+      })
+      .catch(err => {
+        alert("Erro ao salvar dados");
+        btn.innerText = "Salvar o Corre";
+        btn.disabled = false;
+      });
+    }
+  </script>
+</body>
+</html>
