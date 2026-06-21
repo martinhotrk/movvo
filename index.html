@@ -409,19 +409,17 @@
     </div>
 
     <script>
-        // CONFIGURAÇÃO: Sua URL ajustada e atualizada do Google Apps Script
-        const API_URL = "https://script.google.com/macros/s/AKfycbwS5nJqaqgehD2rQTyXUMJP0t0uh9FOr1U2zBTthXgYdYNoEWNz5i7QZT9L_xA1bXRVcw/exec";
+        // CONFIGURAÇÃO: Certifique-se de manter sua URL gerada aqui
+        const API_URL = "https://script.google.com/macros/s/AKfycbzzbcyyk-YhyzNnKJYrMDg4MslXUGr_dQJc8cWXTRQUCj7mmmcYWBEiKvUaHQaujFJiiQ/exec";
 
         let currentFluxo = 'ganho';
         let currentInputValue = 0; 
-        let loginMode = 'completo'; // 'completo', 'pin' ou 'cadastro'
+        let loginMode = 'completo'; 
 
-        // Inicialização do App
         document.addEventListener("DOMContentLoaded", () => {
             verificarStatusAutenticacao();
         });
 
-        // Controla os estados de login e renderiza os campos correspondentes
         function verificarStatusAutenticacao() {
             const usuarioSalvo = localStorage.getItem('movvo_user');
             const wrapper = document.getElementById('inputs-wrapper');
@@ -501,29 +499,31 @@
             verificarStatusAutenticacao();
         }
 
-        // Executa a requisição correspondente para a API
         function executarAutenticacao() {
             const btnAcao = document.getElementById('btn-acao-login');
             btnAcao.innerText = "Processando... 🕒";
             btnAcao.disabled = true;
 
-            // ROTA POST: CADASTRO DE USUÁRIO
+            // ROTA POST: CADASTRO DE USUÁRIO (Corrigido para evitar bloqueio CORS)
             if (loginMode === 'cadastro') {
                 const nome = document.getElementById('reg-nome').value;
                 const email = document.getElementById('reg-email').value;
                 const senha = document.getElementById('reg-senha').value;
                 const pin = document.getElementById('reg-pin').value;
 
+                // Transforma o payload em texto plano aceitável pelo GAS sem pre-flight OPTIONS
+                const payloadText = JSON.stringify({
+                    acao: 'cadastrar_usuario',
+                    nome: nome,
+                    email: email,
+                    senha: senha,
+                    pin: pin
+                });
+
                 fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: JSON.stringify({
-                        acao: 'cadastrar_usuario',
-                        nome: nome,
-                        email: email,
-                        senha: senha,
-                        pin: pin
-                    })
+                    mode: 'cors',
+                    body: payloadText
                 })
                 .then(res => res.json())
                 .then(data => {
@@ -542,14 +542,14 @@
                     }
                 })
                 .catch(err => {
-                    alert("Erro ao conectar com o servidor.");
+                    alert("Erro ao conectar com o servidor. Verifique a URL do Web App.");
                     btnAcao.disabled = false;
                     verificarStatusAutenticacao();
                 });
                 return;
             }
 
-            // ROTAS GET: LOGIN COMPLETO OU DESBLOQUEIO POR PIN
+            // ROTAS GET
             let urlValidacao = "";
             if (loginMode === 'completo') {
                 const email = document.getElementById('login-email').value;
@@ -588,14 +588,13 @@
         }
 
         function fazerLogout() {
-            if(confirm("Deseja sair da sua conta? Você precisará realizar o login completo de e-mail e senha novamente.")) {
+            if(confirm("Deseja sair da sua conta? Você precisará realizar o login completo novamente.")) {
                 localStorage.clear();
                 loginMode = 'completo';
                 verificarStatusAutenticacao();
             }
         }
 
-        // Busca faturamentos individuais do banco vinculados ao e-mail logado
         function carregarTotais() {
             const usuarioLogado = localStorage.getItem('movvo_user') || '';
             if (!usuarioLogado) return;
@@ -626,7 +625,6 @@
                 });
         }
 
-        // Envia um novo registro informando o e-mail responsável
         function processarEnvioCorre() {
             if (currentInputValue === 0) {
                 acionarIsland("Digite um valor válido! ⚠️");
@@ -645,10 +643,16 @@
 
             acionarIsland("Registrando Corre... ⚡");
 
+            const payloadText = JSON.stringify({ 
+                acao: "registrar", 
+                email: usuarioLogado, 
+                ganhos: ganhos, 
+                gastos: gastos 
+            });
+
             fetch(API_URL, {
                 method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: JSON.stringify({ acao: "registrar", email: usuarioLogado, ganhos: ganhos, gastos: gastos })
+                body: payloadText
             })
             .then(response => response.json())
             .then(data => {
@@ -669,7 +673,6 @@
             });
         }
 
-        // Funções do Teclado Numérico da Maquininha
         function digitar(num) {
             if (num === 'C') {
                 currentInputValue = 0;
@@ -694,7 +697,6 @@
             return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
-        // Animações de Notificação na Dynamic Island
         function acionarIsland(texto) {
             const island = document.getElementById("island");
             const islandText = document.getElementById("island-text");
