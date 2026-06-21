@@ -345,8 +345,7 @@
             <h2 id="login-title">Entrar no MOVVO</h2>
             <p id="login-subtitle">Por favor, insira suas credenciais para acessar seu painel.</p>
             
-            <div id="inputs-wrapper">
-                </div>
+            <div id="inputs-wrapper"></div>
             
             <button class="btn-login" onclick="executarAutenticacao()" id="btn-acao-login">Entrar</button>
             <div id="toggle-container">
@@ -410,7 +409,7 @@
 
     <script>
         // CONFIGURAÇÃO: Certifique-se de manter sua URL gerada aqui
-        const API_URL = "https://script.google.com/macros/s/AKfycbzzbcyyk-YhyzNnKJYrMDg4MslXUGr_dQJc8cWXTRQUCj7mmmcYWBEiKvUaHQaujFJiiQ/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbxzuG1Xb2q9Mtr41t1QcvBliZQ_ByzvrckAXx-MCXWGbC_ASVYO0P1YUZvdFPoIpa277Q/exec";
 
         let currentFluxo = 'ganho';
         let currentInputValue = 0; 
@@ -504,27 +503,16 @@
             btnAcao.innerText = "Processando... 🕒";
             btnAcao.disabled = true;
 
-            // ROTA POST: CADASTRO DE USUÁRIO (Corrigido para evitar bloqueio CORS)
+            // ROTA DE CADASTRO ATUALIZADA PARA GET (IMUNE A COMPORTAMENTOS DE CORS)
             if (loginMode === 'cadastro') {
                 const nome = document.getElementById('reg-nome').value;
                 const email = document.getElementById('reg-email').value;
                 const senha = document.getElementById('reg-senha').value;
                 const pin = document.getElementById('reg-pin').value;
 
-                // Transforma o payload em texto plano aceitável pelo GAS sem pre-flight OPTIONS
-                const payloadText = JSON.stringify({
-                    acao: 'cadastrar_usuario',
-                    nome: nome,
-                    email: email,
-                    senha: senha,
-                    pin: pin
-                });
+                const urlCadastro = `${API_URL}?acao=cadastrar_usuario&nome=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&senha=${encodeURIComponent(senha)}&pin=${encodeURIComponent(pin)}`;
 
-                fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    body: payloadText
-                })
+                fetch(urlCadastro)
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === "success") {
@@ -542,14 +530,14 @@
                     }
                 })
                 .catch(err => {
-                    alert("Erro ao conectar com o servidor. Verifique a URL do Web App.");
+                    alert("Erro ao conectar com o servidor.");
                     btnAcao.disabled = false;
                     verificarStatusAutenticacao();
                 });
                 return;
             }
 
-            // ROTAS GET
+            // ROTAS TRADICIONAIS VIA GET (LOGIN E PIN)
             let urlValidacao = "";
             if (loginMode === 'completo') {
                 const email = document.getElementById('login-email').value;
