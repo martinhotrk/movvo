@@ -193,7 +193,7 @@
     </div>
 
     <script>
-        // Conexão Direta ao Endpoint do Supabase REST API
+// Conexão Direta ao Endpoint do Supabase REST API
         const SUPABASE_URL = "https://xquszdfzmjifuscdhrli.supabase.co";
         const SUPABASE_KEY = "sb_publishable_zaUOU7y9Hh6U2yDQ8mpv8Q_tjnWWo74";
         const API_BASE_URL = `${SUPABASE_URL}/rest/v1`;
@@ -282,6 +282,17 @@
                 const bounds = L.latLngBounds([latAtual, lngAtual], [latDestinoFicticio, lngDestinoFicticio]);
                 mapa.fitBounds(bounds);
 
+                fetch(`${API_BASE_URL}/routes`, {
+                    method: "POST",
+                    headers: SUPABASE_HEADERS,
+                    body: JSON.stringify({
+                        email: usuarioLogado,
+                        origem: "Minha Localização Atual",
+                        destino: destinoTexto,
+                        lat_origem: latAtual,
+                        lng_origem: lngAtual,
+                        lat_destino: latDestinoFicticio,
+                        lng_destino
                 fetch(`${API_BASE_URL}/routes`, {
                     method: "POST",
                     headers: SUPABASE_HEADERS,
