@@ -1,72 +1,2069 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="manifest" href="manifest.json">
-    <title>MOVVO Elite</title>
-    <style>
-        :root { --accent: #007aff; --bg: #f2f2f7; --card: #ffffff; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 0; }
-        
-        /* Layout de Telas */
-        .page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 20px; box-sizing: border-box; }
-        #page-resumo { transform: translateX(0); }
-        #page-mapa { transform: translateX(100%); }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#f2f2f7">
+  <link rel="manifest" href="manifest.json">
+  <title>MOVVO Elite</title>
+  <style>
+    /* ─── Reset & Base ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-        /* Estilo iOS */
-        .glass-card { background: var(--card); border-radius: 24px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .chip { display: inline-block; padding: 8px 16px; border-radius: 20px; background: #e5e5ea; font-size: 14px; margin: 5px; }
-        
-        /* Barra de Navegação */
-        .tab-bar { position: fixed; bottom: 0; width: 100%; height: 80px; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; z-index: 10; border-top: 1px solid #d1d1d6; }
-        .btn-fab { width: 64px; height: 64px; background: var(--accent); border-radius: 50%; color: white; border: none; font-size: 30px; box-shadow: 0 8px 16px rgba(0,122,255,0.4); }
-    </style>
+    :root {
+      --accent:       #007aff;
+      --accent-light: rgba(0,122,255,0.12);
+      --bg:           #f2f2f7;
+      --card:         #ffffff;
+      --label:        #3c3c43;
+      --label-2:      rgba(60,60,67,0.6);
+      --label-3:      rgba(60,60,67,0.3);
+      --sep:          rgba(60,60,67,0.18);
+      --red:          #ff3b30;
+      --green:        #34c759;
+      --yellow:       #ff9f0a;
+      --purple:       #af52de;
+      --radius-card:  22px;
+      --tab-h:        82px;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--label);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Pages ─────────────────────────────────────────── */
+    .page {
+      position: fixed;
+      inset: 0;
+      bottom: var(--tab-h);
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 56px 16px 24px;
+      transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+      will-change: transform;
+      scrollbar-width: none;
+    }
+    .page::-webkit-scrollbar { display: none; }
+    .page.hidden-left  { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+    .page.hidden-right { transform: translateX(100%);  opacity: 0; pointer-events: none; }
+    .page.active       { transform: translateX(0);      opacity: 1; pointer-events: auto; }
+
+    /* ─── Top Bar ───────────────────────────────────────── */
+    .top-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 52px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 0 20px 8px;
+      background: rgba(242,242,247,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 50;
+    }
+    .top-bar-title {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+    .top-bar-action {
+      font-size: 17px;
+      color: var(--accent);
+      background: none;
+      border: none;
+      font-family: inherit;
+      cursor: pointer;
+      font-weight: 400;
+    }
+
+    /* ─── Cards ─────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius-card);
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.04);
+      margin-bottom: 14px;
+    }
+
+    .card-label {
+      font-size: 13px;
+      color: var(--label-2);
+      font-weight: 500;
+      letter-spacing: 0.1px;
+      margin-bottom: 6px;
+    }
+
+    /* ─── Hero Saldo ─────────────────────────────────────── */
+    .hero-card {
+      background: linear-gradient(135deg, #007aff 0%, #5e5ce6 100%);
+      color: white;
+      border-radius: var(--radius-card);
+      padding: 24px 22px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px rgba(0,122,255,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 140px; height: 140px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 50%;
+    }
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      bottom: -60px; left: -20px;
+      width: 180px; height: 180px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+    }
+    .hero-label { font-size: 13px; opacity: 0.8; font-weight: 500; margin-bottom: 4px; }
+    .hero-value { font-size: 40px; font-weight: 700; letter-spacing: -1.5px; line-height: 1; }
+    .hero-sub   { font-size: 13px; opacity: 0.75; margin-top: 6px; }
+
+    /* ─── Meta Progress ─────────────────────────────────── */
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .meta-label { font-size: 14px; color: var(--label-2); }
+    .meta-pct   { font-size: 14px; font-weight: 600; color: var(--accent); }
+    .progress-track {
+      height: 6px;
+      background: var(--label-3);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #007aff, #5e5ce6);
+      border-radius: 99px;
+      transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* ─── Chips ──────────────────────────────────────────── */
+    .chip-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .chip-scroll::-webkit-scrollbar { display: none; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: 99px;
+      background: var(--card);
+      border: 1px solid var(--sep);
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .chip:active { background: var(--accent-light); transform: scale(0.95); }
+    .chip-icon { font-size: 16px; }
+
+    /* ─── Transaction List ───────────────────────────────── */
+    .tx-list { display: flex; flex-direction: column; gap: 0; }
+    .tx-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 16px;
+      border-bottom: 0.5px solid var(--sep);
+      transition: background 0.15s;
+      cursor: default;
+    }
+    .tx-item:last-child { border-bottom: none; }
+    .tx-item:active { background: rgba(0,0,0,0.03); }
+    .tx-icon {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .tx-info { flex: 1; min-width: 0; }
+    .tx-name {
+      font-size: 15px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tx-time { font-size: 12px; color: var(--label-2); margin-top: 1px; }
+    .tx-value { font-size: 16px; font-weight: 600; color: var(--red); }
+    .tx-value.income { color: var(--green); }
+
+    /* ─── Section Header ─────────────────────────────────── */
+    .section-header {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      margin: 20px 4px 12px;
+    }
+    .section-sub {
+      font-size: 13px;
+      color: var(--label-2);
+      margin: -8px 4px 12px;
+      font-weight: 400;
+    }
+
+    /* ─── Skeleton ───────────────────────────────────────── */
+    @keyframes shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s infinite linear;
+      border-radius: 8px;
+    }
+
+    /* ─── Heatmap Page ───────────────────────────────────── */
+    .heatmap-wrap {
+      background: var(--card);
+      border-radius: var(--radius-card);
+      padding: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .heatmap-canvas { width: 100%; height: 220px; display: block; border-radius: 12px; }
+    .heatmap-legend {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--label-2);
+    }
+    .legend-scale {
+      flex: 1;
+      height: 6px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, rgba(0,122,255,0.1), #007aff);
+    }
+
+    /* ─── Stats Row ─────────────────────────────────────── */
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .stat-card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .stat-icon { font-size: 22px; margin-bottom: 8px; }
+    .stat-value { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    .stat-label { font-size: 12px; color: var(--label-2); margin-top: 2px; }
+
+    /* ─── Tab Bar ────────────────────────────────────────── */
+    .tab-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: var(--tab-h);
+      background: rgba(255,255,255,0.82);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 0.5px solid rgba(60,60,67,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    .tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px 20px;
+      border-radius: 12px;
+      transition: transform 0.1s;
+    }
+    .tab-btn:active { transform: scale(0.9); }
+    .tab-btn svg { width: 24px; height: 24px; stroke-width: 1.8; transition: color 0.2s; }
+    .tab-btn span { font-size: 10px; font-weight: 500; transition: color 0.2s; }
+    .tab-btn.active svg, .tab-btn.active span { color: var(--accent); }
+    .tab-btn:not(.active) svg, .tab-btn:not(.active) span { color: var(--label-3); }
+
+    /* FAB */
+    .tab-fab {
+      width: 56px; height: 56px;
+      background: var(--accent);
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,122,255,0.45), 0 1px 4px rgba(0,0,0,0.12);
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+    }
+    .tab-fab:active {
+      transform: scale(0.92);
+      box-shadow: 0 2px 8px rgba(0,122,255,0.35);
+    }
+    .tab-fab svg { width: 26px; height: 26px; color: white; stroke-width: 2.5; transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .tab-fab.open svg { transform: rotate(45deg); }
+
+    /* ─── Modal ──────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 200;
+      display: flex;
+      align-items: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .modal-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-sheet {
+      width: 100%;
+      background: #f2f2f7;
+      border-radius: 24px 24px 0 0;
+      padding: 12px 20px 40px;
+      transform: translateY(100%);
+      transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-overlay.visible .modal-sheet { transform: translateY(0); }
+
+    .modal-handle {
+      width: 36px; height: 4px;
+      background: rgba(60,60,67,0.2);
+      border-radius: 99px;
+      margin: 0 auto 20px;
+    }
+    .modal-title { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 20px; }
+
+    .input-group { margin-bottom: 14px; }
+    .input-label { font-size: 13px; color: var(--label-2); font-weight: 500; margin-bottom: 6px; display: block; }
+
+    .input-value {
+      width: 100%;
+      background: var(--card);
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--label);
+      font-family: inherit;
+      text-align: center;
+      outline: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .input-value:focus { box-shadow: 0 0 0 2px var(--accent); }
+
+    .input-field {
+      width: 100%;
+      background: var(--card);
+      border: none;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 16px;
+      color: var(--label);
+      font-family: inherit;
+      outline: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .input-field:focus { box-shadow: 0 0 0 2px var(--accent); }
+
+    .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+    .cat-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 6px;
+      background: var(--card);
+      border: 2px solid transparent;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .cat-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+    .cat-btn:active { transform: scale(0.93); }
+    .cat-emoji { font-size: 24px; }
+    .cat-name { font-size: 10px; color: var(--label-2); font-weight: 500; }
+    .cat-btn.selected .cat-name { color: var(--accent); font-weight: 600; }
+
+    .btn-confirm {
+      width: 100%;
+      padding: 17px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-size: 17px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0,122,255,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-confirm:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(0,122,255,0.25); }
+
+    /* ─── Toast ──────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: calc(var(--tab-h) + 12px);
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(50,50,55,0.92);
+      color: white;
+      padding: 11px 20px;
+      border-radius: 99px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 300;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+      backdrop-filter: blur(10px);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ─── Confetti ───────────────────────────────────────── */
+    .confetti-piece {
+      position: fixed;
+      width: 8px; height: 8px;
+      border-radius: 2px;
+      z-index: 999;
+      pointer-events: none;
+      animation: fall 1.8s ease-in forwards;
+    }
+    @keyframes fall {
+      0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* ─── Offline Banner ─────────────────────────────────── */
+    .offline-banner {
+      position: fixed;
+      top: 52px; left: 12px; right: 12px;
+      background: rgba(255,159,10,0.92);
+      color: white;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 80;
+      text-align: center;
+      display: none;
+      box-shadow: 0 4px 12px rgba(255,159,10,0.35);
+    }
+    .offline-banner.visible { display: block; }
+
+    /* ─── Perfil Page ────────────────────────────────────── */
+    .avatar {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #007aff, #af52de);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      color: white;
+      margin: 0 auto 12px;
+    }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 0.5px solid var(--sep);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-row:active { background: rgba(0,0,0,0.03); }
+    .setting-icon { font-size: 20px; margin-right: 14px; width: 28px; text-align: center; }
+    .setting-label { flex: 1; font-size: 16px; }
+    .setting-arrow { color: var(--label-3); font-size: 14px; }
+  </style>
 </head>
 <body>
 
-    <div id="page-resumo" class="page">
-        <h1>Resumo</h1>
-        <div class="glass-card">
-            <p>Meta do dia</p>
-            <h2 id="saldo">R$ 0,00</h2>
+<!-- ─── Offline Banner ─────────────────────────── -->
+<div class="offline-banner" id="offlineBanner">⚠️ Sem conexão — salvando localmente</div>
+
+<!-- ─── Top Bar ────────────────────────────────── -->
+<div class="top-bar">
+  <span class="top-bar-title" id="topTitle">Resumo</span>
+  <button class="top-bar-action" onclick="showHistory()">Histórico</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE: RESUMO
+════════════════════════════════════════════════ -->
+<div class="page active" id="page-resumo">
+
+  <!-- Hero Saldo -->
+  <div class="hero-card">
+    <div class="hero-label">Gasto hoje</div>
+    <div class="hero-value" id="heroValue">R$ 0,00</div>
+    <div class="hero-sub" id="heroSub">Meta: R$ 150,00 · <span id="heroLeft">R$ 150,00 restantes</span></div>
+  </div>
+
+  <!-- Meta Progress -->
+  <div class="card">
+    <div class="meta-row">
+      <span class="meta-label">Progresso da meta diária</span>
+      <span class="meta-pct" id="metaPct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-value" id="statTransactions">0</div>
+      <div class="stat-label">Registros hoje</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🏆</div>
+      <div class="stat-value" id="statStreak">0</div>
+      <div class="stat-label">Dias seguidos</div>
+    </div>
+  </div>
+
+  <!-- Smart Chips -->
+  <div class="section-header">Registro Rápido</div>
+  <div class="section-sub" id="chipContext">Sugestões para agora</div>
+  <div class="chip-scroll" id="chipRow"></div>
+
+  <!-- Histórico do dia -->
+  <div class="section-header" style="margin-top:24px">Hoje</div>
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div class="tx-list" id="txList">
+      <div style="padding:24px; text-align:center; color:var(--label-2); font-size:14px;">
+        Nenhum registro ainda.<br>Toque em <strong>+</strong> para começar.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE: MAPA
+════════════════════════════════════════════════ -->
+<div class="page hidden-right" id="page-mapa">
+
+  <div class="section-header">Mapa de Calor</div>
+  <div class="section-sub">Seus gastos por hora do dia</div>
+
+  <div class="heatmap-wrap">
+    <canvas class="heatmap-canvas" id="heatmapCanvas"></canvas>
+    <div class="heatmap-legend">
+      <span>Menos</span>
+      <div class="legend-scale"></div>
+      <span>Mais</span>
+    </div>
+  </div>
+
+  <!-- Resumo semanal -->
+  <div class="section-header">Esta Semana</div>
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div id="weekList"></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PAGE: PERFIL
+════════════════════════════════════════════════ -->
+<div class="page hidden-right" id="page-perfil">
+
+  <div style="text-align:center; padding: 20px 0 24px;">
+    <div class="avatar">😎</div>
+    <div style="font-size:20px; font-weight:700; letter-spacing:-0.4px;">Meu Perfil</div>
+    <div style="font-size:14px; color:var(--label-2); margin-top:4px;">MOVVO Elite</div>
+  </div>
+
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div class="setting-row" onclick="editMeta()">
+      <span class="setting-icon">🎯</span>
+      <span class="setting-label">Meta diária</span>
+      <span style="font-size:14px; color:var(--accent); margin-right:8px;" id="metaDisplay">R$ 150</span>
+      <span class="setting-arrow">›</span>
+    </div>
+    <div class="setting-row" onclick="clearData()">
+      <span class="setting-icon">🗑️</span>
+      <span class="setting-label">Limpar dados</span>
+      <span class="setting-arrow">›</span>
+    </div>
+    <div class="setting-row">
+      <span class="setting-icon">📲</span>
+      <span class="setting-label">Instalar como app</span>
+      <span class="setting-arrow">›</span>
+    </div>
+    <div class="setting-row">
+      <span class="setting-icon">ℹ️</span>
+      <span class="setting-label">Versão 1.0.0 Elite</span>
+      <span class="setting-arrow"></span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── Tab Bar ────────────────────────────────── -->
+<nav class="tab-bar">
+  <button class="tab-btn active" id="tab-resumo" onclick="navTo('resumo')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+    <span>Resumo</span>
+  </button>
+
+  <button class="tab-fab" id="fabBtn" onclick="toggleModal()">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+
+  <button class="tab-btn" id="tab-mapa" onclick="navTo('mapa')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 13l4.553 2.276A1 1 0 0021 21.382V10.618a1 1 0 00-.553-.894L15 7m0 13V7m0 0L9 4"/></svg>
+    <span>Mapa</span>
+  </button>
+
+  <button class="tab-btn" id="tab-perfil" onclick="navTo('perfil')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+    <span>Perfil</span>
+  </button>
+</nav>
+
+<!-- ─── Modal de Registro ─────────────────────── -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Novo Registro</div>
+
+    <div class="input-group">
+      <label class="input-label">Valor</label>
+      <input
+        class="input-value"
+        id="inputValor"
+        type="tel"
+        placeholder="R$ 0,00"
+        inputmode="decimal"
+        oninput="formatCurrency(this)"
+      >
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Categoria</label>
+      <div class="cat-grid" id="catGrid"></div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Descrição (opcional)</label>
+      <input class="input-field" id="inputDesc" type="text" placeholder="Ex: Uber da manhã…" maxlength="60">
+    </div>
+
+    <button class="btn-confirm" onclick="confirmarRegistro()">Registrar</button>
+  </div>
+</div>
+
+<!-- ─── Toast ─────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ──────────────────────────────────────────────
+   STATE & CONFIG
+──────────────────────────────────────────────── */
+const META_DIARIA = 150;
+let selectedCat = null;
+let currentPage = 'resumo';
+
+const CATEGORIES = [
+  { id: 'uber',       name: 'Uber',       emoji: '🚗', color: '#000' },
+  { id: 'comida',     name: 'Comida',     emoji: '🍔', color: '#ff9f0a' },
+  { id: 'combustivel',name: 'Gasolina',   emoji: '⛽', color: '#ff6b35' },
+  { id: 'mercado',    name: 'Mercado',    emoji: '🛒', color: '#34c759' },
+  { id: 'lazer',      name: 'Lazer',      emoji: '🎮', color: '#5e5ce6' },
+  { id: 'saude',      name: 'Saúde',      emoji: '💊', color: '#ff3b30' },
+  { id: 'pix',        name: 'PIX',        emoji: '💸', color: '#007aff' },
+  { id: 'outros',     name: 'Outros',     emoji: '📦', color: '#8e8e93' },
+];
+
+const TIME_CHIPS = {
+  morning:   [{ emoji:'🚗', label:'Uber' }, { emoji:'☕', label:'Café' }, { emoji:'⛽', label:'Gasolina' }],
+  afternoon: [{ emoji:'🍔', label:'Almoço' }, { emoji:'💧', label:'Bebida' }, { emoji:'🛒', label:'Mercado' }],
+  evening:   [{ emoji:'🍕', label:'Jantar' }, { emoji:'🎮', label:'Lazer' }, { emoji:'💸', label:'PIX' }],
+  night:     [{ emoji:'🚗', label:'Uber' }, { emoji:'🍕', label:'Comida' }, { emoji:'📦', label:'Outros' }],
+};
+
+/* ──────────────────────────────────────────────
+   STORAGE
+──────────────────────────────────────────────── */
+function loadTxs() {
+  try { return JSON.parse(localStorage.getItem('movvo_txs') || '[]'); } catch { return []; }
+}
+function saveTxs(arr) {
+  localStorage.setItem('movvo_txs', JSON.stringify(arr));
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: 'SYNC', data: arr });
+  }
+}
+function loadMeta() {
+  return parseFloat(localStorage.getItem('movvo_meta') || String(META_DIARIA));
+}
+function saveMeta(v) { localStorage.setItem('movvo_meta', v); }
+
+function todayKey() { return new Date().toISOString().slice(0, 10); }
+function todayTxs()  { return loadTxs().filter(t => t.date === todayKey()); }
+function totalHoje() { return todayTxs().reduce((s, t) => s + t.value, 0); }
+
+/* ──────────────────────────────────────────────
+   NAVIGATION
+──────────────────────────────────────────────── */
+const PAGES = ['resumo', 'mapa', 'perfil'];
+const PAGE_ORDER = { resumo: 0, mapa: 1, perfil: 2 };
+const TITLES = { resumo: 'Resumo', mapa: 'Mapa de Calor', perfil: 'Perfil' };
+
+function navTo(p) {
+  if (p === currentPage) return;
+  haptic();
+  const curr = PAGE_ORDER[currentPage];
+  const next = PAGE_ORDER[p];
+
+  document.querySelectorAll('.page').forEach(el => {
+    el.classList.remove('active', 'hidden-left', 'hidden-right');
+    const id = el.id.replace('page-', '');
+    const pos = PAGE_ORDER[id];
+    if (pos < next) el.classList.add('hidden-left');
+    else if (pos > next) el.classList.add('hidden-right');
+    else el.classList.add('active');
+  });
+
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const tb = document.getElementById('tab-' + p);
+  if (tb) tb.classList.add('active');
+
+  document.getElementById('topTitle').textContent = TITLES[p];
+  currentPage = p;
+
+  if (p === 'mapa') drawHeatmap();
+}
+
+/* ──────────────────────────────────────────────
+   MODAL
+──────────────────────────────────────────────── */
+let modalOpen = false;
+
+function toggleModal() {
+  haptic();
+  modalOpen ? closeModal() : openModal();
+}
+
+function openModal() {
+  modalOpen = true;
+  document.getElementById('modalOverlay').classList.add('visible');
+  document.getElementById('fabBtn').classList.add('open');
+  document.getElementById('inputValor').focus();
+  buildCatGrid();
+}
+
+function closeModal() {
+  modalOpen = false;
+  document.getElementById('modalOverlay').classList.remove('visible');
+  document.getElementById('fabBtn').classList.remove('open');
+  document.getElementById('inputValor').value = '';
+  document.getElementById('inputDesc').value = '';
+  selectedCat = null;
+  buildCatGrid();
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function buildCatGrid() {
+  const grid = document.getElementById('catGrid');
+  grid.innerHTML = CATEGORIES.map(c => `
+    <button class="cat-btn ${selectedCat === c.id ? 'selected' : ''}" onclick="selectCat('${c.id}')">
+      <span class="cat-emoji">${c.emoji}</span>
+      <span class="cat-name">${c.name}</span>
+    </button>
+  `).join('');
+}
+
+function selectCat(id) {
+  selectedCat = id;
+  haptic();
+  buildCatGrid();
+}
+
+/* ──────────────────────────────────────────────
+   CURRENCY FORMAT
+──────────────────────────────────────────────── */
+function formatCurrency(el) {
+  let raw = el.value.replace(/\D/g, '');
+  if (!raw) { el.value = ''; return; }
+  const num = parseInt(raw, 10) / 100;
+  el.value = 'R$ ' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function parseCurrency(str) {
+  if (!str) return 0;
+  return parseFloat(str.replace('R$ ', '').replace(/\./g, '').replace(',', '.')) || 0;
+}
+
+/* ──────────────────────────────────────────────
+   REGISTER
+──────────────────────────────────────────────── */
+function confirmarRegistro() {
+  const valor = parseCurrency(document.getElementById('inputValor').value);
+  if (!valor || valor <= 0) { showToast('Informe um valor válido'); return; }
+
+  const cat = CATEGORIES.find(c => c.id === selectedCat) || CATEGORIES[7];
+  const desc = document.getElementById('inputDesc').value.trim() || cat.name;
+
+  const tx = {
+    id:    Date.now(),
+    date:  todayKey(),
+    hour:  new Date().getHours(),
+    value: valor,
+    cat:   cat.id,
+    emoji: cat.emoji,
+    label: desc,
+  };
+
+  const all = loadTxs();
+  all.unshift(tx);
+  saveTxs(all);
+  haptic('success');
+
+  closeModal();
+  updateUI();
+  showToast(`${cat.emoji} R$ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} registrado!`);
+
+  const meta = loadMeta();
+  if (totalHoje() >= meta) setTimeout(celebrar, 400);
+}
+
+/* ──────────────────────────────────────────────
+   QUICK CAPTURE VIA CHIP
+──────────────────────────────────────────────── */
+function quickFromChip(label) {
+  const cat = CATEGORIES.find(c => c.name.toLowerCase() === label.toLowerCase())
+            || CATEGORIES[7];
+  openModal();
+  selectedCat = cat.id;
+  document.getElementById('inputDesc').value = label;
+  buildCatGrid();
+}
+
+/* ──────────────────────────────────────────────
+   UI UPDATE
+──────────────────────────────────────────────── */
+function updateUI() {
+  const meta  = loadMeta();
+  const total = totalHoje();
+  const pct   = Math.min((total / meta) * 100, 100);
+  const left  = Math.max(meta - total, 0);
+
+  document.getElementById('heroValue').textContent =
+    'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  document.getElementById('heroLeft').textContent =
+    left > 0
+      ? 'R$ ' + left.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' restantes'
+      : '🎉 Meta batida!';
+  document.getElementById('heroSub').innerHTML =
+    `Meta: R$ ${meta.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} · <span id="heroLeft">${
+      left > 0
+        ? 'R$ ' + left.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' restantes'
+        : '🎉 Meta batida!'
+    }</span>`;
+
+  document.getElementById('metaPct').textContent = Math.round(pct) + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  const txs = todayTxs();
+  document.getElementById('statTransactions').textContent = txs.length;
+  document.getElementById('statStreak').textContent = calcStreak();
+
+  renderTxList(txs);
+  updateChips();
+  updateMetaDisplay();
+}
+
+function renderTxList(txs) {
+  const list = document.getElementById('txList');
+  if (!txs.length) {
+    list.innerHTML = `<div style="padding:24px; text-align:center; color:var(--label-2); font-size:14px;">
+      Nenhum registro ainda.<br>Toque em <strong>+</strong> para começar.
+    </div>`;
+    return;
+  }
+  list.innerHTML = txs.map(t => `
+    <div class="tx-item">
+      <div class="tx-icon" style="background:${getCatColor(t.cat)}18">${t.emoji}</div>
+      <div class="tx-info">
+        <div class="tx-name">${t.label}</div>
+        <div class="tx-time">${formatHour(t.hour)}</div>
+      </div>
+      <div class="tx-value">− R$ ${t.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+    </div>
+  `).join('');
+}
+
+function getCatColor(id) {
+  return (CATEGORIES.find(c => c.id === id) || {}).color || '#8e8e93';
+}
+
+function formatHour(h) {
+  const now = new Date().getHours();
+  if (h === now) return 'Agora há pouco';
+  return `${String(h).padStart(2,'0')}:00`;
+}
+
+function updateChips() {
+  const h = new Date().getHours();
+  let set, label;
+  if (h < 12)      { set = TIME_CHIPS.morning;   label = 'Bom dia ☀️ — sugestões para a manhã'; }
+  else if (h < 14) { set = TIME_CHIPS.afternoon;  label = 'Hora do almoço 🍽️'; }
+  else if (h < 20) { set = TIME_CHIPS.afternoon;  label = 'Tarde — sugestões rápidas'; }
+  else             { set = TIME_CHIPS.night;       label = 'Boa noite 🌙 — sugestões'; }
+
+  document.getElementById('chipContext').textContent = label;
+  document.getElementById('chipRow').innerHTML = set.map(c =>
+    `<div class="chip" onclick="quickFromChip('${c.label}')"><span class="chip-icon">${c.emoji}</span>${c.label}</div>`
+  ).join('');
+}
+
+function updateMetaDisplay() {
+  const meta = loadMeta();
+  document.getElementById('metaDisplay').textContent =
+    'R$ ' + meta.toLocaleString('pt-BR');
+}
+
+/* ──────────────────────────────────────────────
+   HEATMAP (Canvas)
+──────────────────────────────────────────────── */
+function drawHeatmap() {
+  const canvas = document.getElementById('heatmapCanvas');
+  const ctx    = canvas.getContext('2d');
+  const W = canvas.offsetWidth;
+  const H = canvas.offsetHeight;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  ctx.scale(dpr, dpr);
+
+  const txs = loadTxs();
+
+  // Build 7-day × 24-hour matrix
+  const days = 7;
+  const hours = 24;
+  const matrix = Array.from({ length: days }, () => new Array(hours).fill(0));
+  const labels = [];
+
+  for (let d = 0; d < days; d++) {
+    const dt = new Date();
+    dt.setDate(dt.getDate() - (days - 1 - d));
+    const key = dt.toISOString().slice(0, 10);
+    labels.push(['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][dt.getDay()]);
+    txs.filter(t => t.date === key).forEach(t => {
+      if (t.hour >= 0 && t.hour < 24) matrix[d][t.hour] += t.value;
+    });
+  }
+
+  const maxVal = Math.max(...matrix.flat(), 1);
+  const padL = 30, padT = 20, padR = 8, padB = 24;
+  const cellW = (W - padL - padR) / hours;
+  const cellH = (H - padT - padB) / days;
+
+  // Draw cells
+  for (let d = 0; d < days; d++) {
+    for (let h = 0; h < hours; h++) {
+      const val = matrix[d][h];
+      const intensity = val / maxVal;
+      ctx.fillStyle = val === 0
+        ? 'rgba(0,122,255,0.04)'
+        : `rgba(0,122,255,${0.12 + intensity * 0.85})`;
+      const x = padL + h * cellW + 1;
+      const y = padT + d * cellH + 1;
+      const r = Math.min(4, cellW * 0.3);
+      ctx.beginPath();
+      ctx.roundRect(x, y, cellW - 2, cellH - 2, r);
+      ctx.fill();
+    }
+  }
+
+  // Day labels
+  ctx.fillStyle = 'rgba(60,60,67,0.45)';
+  ctx.font = `500 ${Math.round(cellH * 0.5)}px -apple-system`;
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  for (let d = 0; d < days; d++) {
+    ctx.fillText(labels[d], padL - 4, padT + d * cellH + cellH / 2);
+  }
+
+  // Hour labels (every 4h)
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  for (let h = 0; h < hours; h += 4) {
+    ctx.fillText(String(h).padStart(2,'0'), padL + h * cellW + cellW / 2, H - padB + 16);
+  }
+}
+
+/* ──────────────────────────────────────────────
+   WEEK LIST
+──────────────────────────────────────────────── */
+function buildWeekList() {
+  const txs   = loadTxs();
+  const list  = document.getElementById('weekList');
+  const dNames = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  let html = '';
+  for (let d = 6; d >= 0; d--) {
+    const dt  = new Date(); dt.setDate(dt.getDate() - d);
+    const key = dt.toISOString().slice(0, 10);
+    const tot = txs.filter(t => t.date === key).reduce((s, t) => s + t.value, 0);
+    const pct = Math.min((tot / loadMeta()) * 100, 100);
+    const isToday = d === 0;
+    html += `
+      <div class="setting-row">
+        <span class="setting-icon">${isToday ? '📍' : dNames[dt.getDay()]}</span>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:${isToday?700:400}">${isToday ? 'Hoje' : dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</div>
+          <div style="margin-top:4px;height:4px;background:var(--label-3);border-radius:99px;overflow:hidden">
+            <div style="width:${pct}%;height:100%;background:${pct>=100?'var(--green)':'var(--accent)'};border-radius:99px"></div>
+          </div>
         </div>
-        <h3>Sugestão de Registro</h3>
-        <div id="smart-chips"></div>
+        <span style="font-size:14px;font-weight:600;color:${tot>0?'var(--red)':'var(--label-3)'};margin-left:12px">
+          ${tot > 0 ? '− R$ ' + tot.toLocaleString('pt-BR',{minimumFractionDigits:2}) : '—'}
+        </span>
+      </div>
+    `;
+  }
+  list.innerHTML = html;
+}
+
+/* ──────────────────────────────────────────────
+   STREAK
+──────────────────────────────────────────────── */
+function calcStreak() {
+  const txs  = loadTxs();
+  const days = new Set(txs.map(t => t.date));
+  let streak = 0;
+  const dt = new Date();
+  while (true) {
+    const key = dt.toISOString().slice(0, 10);
+    if (!days.has(key)) break;
+    streak++;
+    dt.setDate(dt.getDate() - 1);
+  }
+  return streak;
+}
+
+/* ──────────────────────────────────────────────
+   CELEBRATION
+──────────────────────────────────────────────── */
+function celebrar() {
+  haptic('success');
+  showToast('🎉 Meta diária batida! Incrível!');
+  const colors = ['#007aff','#34c759','#ff9f0a','#ff3b30','#af52de','#5e5ce6'];
+  for (let i = 0; i < 50; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.cssText = `
+        left: ${Math.random()*100}vw;
+        top: -10px;
+        background: ${colors[Math.floor(Math.random()*colors.length)]};
+        animation-delay: ${Math.random()*0.4}s;
+        animation-duration: ${1.4 + Math.random()*0.8}s;
+        transform: rotate(${Math.random()*360}deg);
+      `;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2500);
+    }, i * 30);
+  }
+}
+
+/* ──────────────────────────────────────────────
+   TOAST
+──────────────────────────────────────────────── */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ──────────────────────────────────────────────
+   HAPTIC
+──────────────────────────────────────────────── */
+function haptic(type) {
+  if (!navigator.vibrate) return;
+  const patterns = { success: [10, 50, 20], error: [50, 20, 50] };
+  navigator.vibrate(patterns[type] || [8]);
+}
+
+/* ──────────────────────────────────────────────
+   PROFILE ACTIONS
+──────────────────────────────────────────────── */
+function editMeta() {
+  const val = prompt('Nova meta diária (R$):', loadMeta());
+  if (val === null) return;
+  const num = parseFloat(val.replace(',', '.'));
+  if (!isNaN(num) && num > 0) {
+    saveMeta(num);
+    updateUI();
+    showToast('✅ Meta atualizada!');
+  }
+}
+
+function clearData() {
+  if (confirm('Apagar todos os registros? Isso não pode ser desfeito.')) {
+    localStorage.removeItem('movvo_txs');
+    updateUI();
+    showToast('🗑️ Dados removidos');
+  }
+}
+
+function showHistory() {
+  showToast('📋 Histórico em breve!');
+}
+
+/* ──────────────────────────────────────────────
+   OFFLINE DETECTION
+──────────────────────────────────────────────── */
+function checkOnline() {
+  document.getElementById('offlineBanner').classList.toggle('visible', !navigator.onLine);
+}
+window.addEventListener('online',  checkOnline);
+window.addEventListener('offline', checkOnline);
+checkOnline();
+
+/* ──────────────────────────────────────────────
+   SERVICE WORKER
+──────────────────────────────────────────────── */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+/* ──────────────────────────────────────────────
+   INIT
+──────────────────────────────────────────────── */
+buildCatGrid();
+updateUI();
+buildWeekList();
+
+// Rebuild week list when mapa tab opens
+const origNavTo = navTo;
+</script>
+</body>
+</html>
+O que foi melhorado:
+
+3 abas reais — Resumo, Mapa de Calor, Perfil — com transição lateral nativa (slide)
+Hero card com gradiente azul, saldo em destaque e progresso da meta
+Modal de captura completo — teclado numérico, grid de 8 categorias, descrição opcional
+Heatmap Canvas real — matriz 7 dias × 24 horas com células coloridas por intensidade de gasto
+Histórico do dia com ícone colorido por categoria, hora e valor
+Smart chips contextuais por horário (manhã/almoço/tarde/noite)
+Confetti ao bater a meta + vibração háptica
+Toast nativo iOS (pill no bottom)
+Streak de dias consecutivos com registros
+Offline banner automático
+Perfil com edição de meta e limpeza de dados
+Dados persistem em LocalStorage — funciona offline
+FAB com animação de rotação 45° ao abrir modal
+me de o html completo aq digitado o código
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#f2f2f7">
+  <link rel="manifest" href="manifest.json">
+  <title>MOVVO Elite</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --accent:       #007aff;
+      --accent-light: rgba(0,122,255,0.12);
+      --bg:           #f2f2f7;
+      --card:         #ffffff;
+      --label:        #3c3c43;
+      --label-2:      rgba(60,60,67,0.6);
+      --label-3:      rgba(60,60,67,0.3);
+      --sep:          rgba(60,60,67,0.18);
+      --red:          #ff3b30;
+      --green:        #34c759;
+      --yellow:       #ff9f0a;
+      --purple:       #af52de;
+      --radius-card:  22px;
+      --tab-h:        82px;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--label);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      position: fixed;
+      inset: 0;
+      bottom: var(--tab-h);
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 56px 16px 24px;
+      transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+      will-change: transform;
+      scrollbar-width: none;
+    }
+    .page::-webkit-scrollbar { display: none; }
+    .page.hidden-left  { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+    .page.hidden-right { transform: translateX(100%);  opacity: 0; pointer-events: none; }
+    .page.active       { transform: translateX(0);     opacity: 1; pointer-events: auto; }
+
+    .top-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 52px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 0 20px 8px;
+      background: rgba(242,242,247,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 50;
+    }
+    .top-bar-title { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+    .top-bar-action {
+      font-size: 17px; color: var(--accent);
+      background: none; border: none;
+      font-family: inherit; cursor: pointer; font-weight: 400;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius-card);
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.04);
+      margin-bottom: 14px;
+    }
+    .card-label { font-size: 13px; color: var(--label-2); font-weight: 500; letter-spacing: 0.1px; margin-bottom: 6px; }
+
+    .hero-card {
+      background: linear-gradient(135deg, #007aff 0%, #5e5ce6 100%);
+      color: white;
+      border-radius: var(--radius-card);
+      padding: 24px 22px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px rgba(0,122,255,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-card::before {
+      content: ""; position: absolute;
+      top: -40px; right: -40px;
+      width: 140px; height: 140px;
+      background: rgba(255,255,255,0.08); border-radius: 50%;
+    }
+    .hero-card::after {
+      content: ""; position: absolute;
+      bottom: -60px; left: -20px;
+      width: 180px; height: 180px;
+      background: rgba(255,255,255,0.05); border-radius: 50%;
+    }
+    .hero-label { font-size: 13px; opacity: 0.8; font-weight: 500; margin-bottom: 4px; }
+    .hero-value { font-size: 40px; font-weight: 700; letter-spacing: -1.5px; line-height: 1; }
+    .hero-sub   { font-size: 13px; opacity: 0.75; margin-top: 6px; }
+
+    .meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .meta-label { font-size: 14px; color: var(--label-2); }
+    .meta-pct   { font-size: 14px; font-weight: 600; color: var(--accent); }
+    .progress-track { height: 6px; background: var(--label-3); border-radius: 99px; overflow: hidden; }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #007aff, #5e5ce6);
+      border-radius: 99px;
+      transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .chip-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+    .chip-scroll::-webkit-scrollbar { display: none; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 16px; border-radius: 99px;
+      background: var(--card); border: 1px solid var(--sep);
+      font-size: 14px; font-weight: 500; white-space: nowrap;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .chip:active { background: var(--accent-light); transform: scale(0.95); }
+    .chip-icon { font-size: 16px; }
+
+    .tx-list { display: flex; flex-direction: column; }
+    .tx-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 13px 16px;
+      border-bottom: 0.5px solid var(--sep);
+      transition: background 0.15s; cursor: default;
+    }
+    .tx-item:last-child { border-bottom: none; }
+    .tx-item:active { background: rgba(0,0,0,0.03); }
+    .tx-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .tx-info { flex: 1; min-width: 0; }
+    .tx-name { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tx-time { font-size: 12px; color: var(--label-2); margin-top: 1px; }
+    .tx-value { font-size: 16px; font-weight: 600; color: var(--red); }
+    .tx-value.income { color: var(--green); }
+
+    .section-header { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; margin: 20px 4px 12px; }
+    .section-sub { font-size: 13px; color: var(--label-2); margin: -8px 4px 12px; font-weight: 400; }
+
+    @keyframes shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position:  400px 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s infinite linear;
+      border-radius: 8px;
+    }
+
+    .heatmap-wrap {
+      background: var(--card); border-radius: var(--radius-card);
+      padding: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin-bottom: 14px; overflow: hidden;
+    }
+    .heatmap-canvas { width: 100%; height: 220px; display: block; border-radius: 12px; }
+    .heatmap-legend { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; color: var(--label-2); }
+    .legend-scale { flex: 1; height: 6px; border-radius: 99px; background: linear-gradient(90deg, rgba(0,122,255,0.1), #007aff); }
+
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .stat-card { background: var(--card); border-radius: 18px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .stat-icon { font-size: 22px; margin-bottom: 8px; }
+    .stat-value { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    .stat-label { font-size: 12px; color: var(--label-2); margin-top: 2px; }
+
+    .tab-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: var(--tab-h);
+      background: rgba(255,255,255,0.82);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border-top: 0.5px solid rgba(60,60,67,0.18);
+      display: flex; align-items: center; justify-content: space-around;
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    .tab-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      background: none; border: none; cursor: pointer;
+      padding: 8px 20px; border-radius: 12px;
+      transition: transform 0.1s;
+    }
+    .tab-btn:active { transform: scale(0.9); }
+    .tab-btn svg { width: 24px; height: 24px; stroke-width: 1.8; transition: color 0.2s; }
+    .tab-btn span { font-size: 10px; font-weight: 500; transition: color 0.2s; }
+    .tab-btn.active svg, .tab-btn.active span { color: var(--accent); }
+    .tab-btn:not(.active) svg, .tab-btn:not(.active) span { color: var(--label-3); }
+
+    .tab-fab {
+      width: 56px; height: 56px;
+      background: var(--accent); border: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,122,255,0.45), 0 1px 4px rgba(0,0,0,0.12);
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+    }
+    .tab-fab:active { transform: scale(0.92); box-shadow: 0 2px 8px rgba(0,122,255,0.35); }
+    .tab-fab svg { width: 26px; height: 26px; color: white; stroke-width: 2.5; transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .tab-fab.open svg { transform: rotate(45deg); }
+
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      z-index: 200;
+      display: flex; align-items: flex-end;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .modal-overlay.visible { opacity: 1; pointer-events: auto; }
+    .modal-sheet {
+      width: 100%; background: #f2f2f7;
+      border-radius: 24px 24px 0 0;
+      padding: 12px 20px 40px;
+      transform: translateY(100%);
+      transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-overlay.visible .modal-sheet { transform: translateY(0); }
+    .modal-handle { width: 36px; height: 4px; background: rgba(60,60,67,0.2); border-radius: 99px; margin: 0 auto 20px; }
+    .modal-title { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 20px; }
+
+    .input-group { margin-bottom: 14px; }
+    .input-label { font-size: 13px; color: var(--label-2); font-weight: 500; margin-bottom: 6px; display: block; }
+    .input-value {
+      width: 100%; background: var(--card); border: none; border-radius: 14px;
+      padding: 16px; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;
+      color: var(--label); font-family: inherit; text-align: center; outline: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .input-value:focus { box-shadow: 0 0 0 2px var(--accent); }
+    .input-field {
+      width: 100%; background: var(--card); border: none; border-radius: 14px;
+      padding: 14px 16px; font-size: 16px; color: var(--label);
+      font-family: inherit; outline: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .input-field:focus { box-shadow: 0 0 0 2px var(--accent); }
+
+    .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+    .cat-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 12px 6px; background: var(--card);
+      border: 2px solid transparent; border-radius: 14px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .cat-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+    .cat-btn:active { transform: scale(0.93); }
+    .cat-emoji { font-size: 24px; }
+    .cat-name { font-size: 10px; color: var(--label-2); font-weight: 500; }
+    .cat-btn.selected .cat-name { color: var(--accent); font-weight: 600; }
+
+    .btn-confirm {
+      width: 100%; padding: 17px;
+      background: var(--accent); color: white;
+      border: none; border-radius: 16px;
+      font-size: 17px; font-weight: 600; font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0,122,255,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-confirm:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(0,122,255,0.25); }
+
+    .toast {
+      position: fixed;
+      bottom: calc(var(--tab-h) + 12px);
+      left: 50%; transform: translateX(-50%) translateY(20px);
+      background: rgba(50,50,55,0.92); color: white;
+      padding: 11px 20px; border-radius: 99px;
+      font-size: 14px; font-weight: 500;
+      z-index: 300; opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap; backdrop-filter: blur(10px);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .confetti-piece {
+      position: fixed; width: 8px; height: 8px; border-radius: 2px;
+      z-index: 999; pointer-events: none;
+      animation: fall 1.8s ease-in forwards;
+    }
+    @keyframes fall {
+      0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    .offline-banner {
+      position: fixed; top: 52px; left: 12px; right: 12px;
+      background: rgba(255,159,10,0.92); color: white;
+      padding: 10px 16px; border-radius: 12px;
+      font-size: 13px; font-weight: 600;
+      z-index: 80; text-align: center; display: none;
+      box-shadow: 0 4px 12px rgba(255,159,10,0.35);
+    }
+    .offline-banner.visible { display: block; }
+
+    .avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, #007aff, #af52de);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px; color: white; margin: 0 auto 12px;
+    }
+    .setting-row {
+      display: flex; align-items: center;
+      padding: 14px 16px;
+      border-bottom: 0.5px solid var(--sep);
+      cursor: pointer; transition: background 0.1s;
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-row:active { background: rgba(0,0,0,0.03); }
+    .setting-icon { font-size: 20px; margin-right: 14px; width: 28px; text-align: center; }
+    .setting-label { flex: 1; font-size: 16px; }
+    .setting-arrow { color: var(--label-3); font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div class="offline-banner" id="offlineBanner">⚠️ Sem conexão — salvando localmente</div>
+
+<div class="top-bar">
+  <span class="top-bar-title" id="topTitle">Resumo</span>
+  <button class="top-bar-action" onclick="showHistory()">Histórico</button>
+</div>
+
+<!-- PAGE: RESUMO -->
+<div class="page active" id="page-resumo">
+
+  <div class="hero-card">
+    <div class="hero-label">Gasto hoje</div>
+    <div class="hero-value" id="heroValue">R$ 0,00</div>
+    <div class="hero-sub" id="heroSub">Meta: R$ 150,00 · <span id="heroLeft">R$ 150,00 restantes</span></div>
+  </div>
+
+  <div class="card">
+    <div class="meta-row">
+      <span class="meta-label">Progresso da meta diária</span>
+      <span class="meta-pct" id="metaPct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-value" id="statTransactions">0</div>
+      <div class="stat-label">Registros hoje</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🏆</div>
+      <div class="stat-value" id="statStreak">0</div>
+      <div class="stat-label">Dias seguidos</div>
+    </div>
+  </div>
+
+  <div class="section-header">Registro Rápido</div>
+  <div class="section-sub" id="chipContext">Sugestões para agora</div>
+  <div class="chip-scroll" id="chipRow"></div>
+
+  <div class="section-header" style="margin-top:24px">Hoje</div>
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div class="tx-list" id="txList">
+      <div style="padding:24px; text-align:center; color:var(--label-2); font-size:14px;">
+        Nenhum registro ainda.<br>Toque em <strong>+</strong> para começar.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- PAGE: MAPA -->
+<div class="page hidden-right" id="page-mapa">
+
+  <div class="section-header">Mapa de Calor</div>
+  <div class="section-sub">Seus gastos por hora do dia</div>
+
+  <div class="heatmap-wrap">
+    <canvas class="heatmap-canvas" id="heatmapCanvas"></canvas>
+    <div class="heatmap-legend">
+      <span>Menos</span>
+      <div class="legend-scale"></div>
+      <span>Mais</span>
+    </div>
+  </div>
+
+  <div class="section-header">Esta Semana</div>
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div id="weekList"></div>
+  </div>
+
+</div>
+
+<!-- PAGE: PERFIL -->
+<div class="page hidden-right" id="page-perfil">
+
+  <div style="text-align:center; padding: 20px 0 24px;">
+    <div class="avatar">😎</div>
+    <div style="font-size:20px; font-weight:700; letter-spacing:-0.4px;">Meu Perfil</div>
+    <div style="font-size:14px; color:var(--label-2); margin-top:4px;">MOVVO Elite</div>
+  </div>
+
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div class="setting-row" onclick="editMeta()">
+      <span class="setting-icon">🎯</span>
+      <span class="setting-label">Meta diária</span>
+      <span style="font-size:14px; color:var(--accent); margin-right:8px;" id="metaDisplay">R$ 150</span>
+      <span class="setting-arrow">›</span>
+    </div>
+    <div class="setting-row" onclick="clearData()">
+      <span class="setting-icon">🗑️</span>
+      <span class="setting-label">Limpar dados</span>
+      <span class="setting-arrow">›</span>
+    </div>
+    <div class="setting-row">
+      <span class="setting-icon">📲</span>
+      <span class="setting-label">Instalar como app</span>
+      <span class="setting-arrow">›</span>
+    </div>
+    <div class="setting-row">
+      <span class="setting-icon">ℹ️</span>
+      <span class="setting-label">Versão 1.0.0 Elite</span>
+      <span class="setting-arrow"></span>
+    </div>
+  </div>
+
+</div>
+
+<!-- TAB BAR -->
+<nav class="tab-bar">
+  <button class="tab-btn active" id="tab-resumo" onclick="navTo('resumo')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+    </svg>
+    <span>Resumo</span>
+  </button>
+
+  <button class="tab-fab" id="fabBtn" onclick="toggleModal()">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  </button>
+
+  <button class="tab-btn" id="tab-mapa" onclick="navTo('mapa')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 13l4.553 2.276A1 1 0 0021 21.382V10.618a1 1 0 00-.553-.894L15 7m0 13V7m0 0L9 4"/>
+    </svg>
+    <span>Mapa</span>
+  </button>
+
+  <button class="tab-btn" id="tab-perfil" onclick="navTo('perfil')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+    </svg>
+    <span>Perfil</span>
+  </button>
+</nav>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Novo Registro</div>
+
+    <div class="input-group">
+      <label class="input-label">Valor</label>
+      <input class="input-value" id="inputValor" type="tel" placeholder="R$ 0,00" inputmode="decimal" oninput="formatCurrency(this)">
     </div>
 
-    <div id="page-mapa" class="page">
-        <h1>Mapa de Calor</h1>
-        <div class="glass-card" style="height: 300px;"></div>
+    <div class="input-group">
+      <label class="input-label">Categoria</label>
+      <div class="cat-grid" id="catGrid"></div>
     </div>
 
-    <nav class="tab-bar">
-        <button onclick="nav('resumo')">Resumo</button>
-        <button class="btn-fab" onclick="quickCapture()">+</button>
-        <button onclick="nav('mapa')">Mapa</button>
-    </nav>
+    <div class="input-group">
+      <label class="input-label">Descrição (opcional)</label>
+      <input class="input-field" id="inputDesc" type="text" placeholder="Ex: Uber da manhã…" maxlength="60">
+    </div>
 
-    <script>
-        // Registrar Service Worker para Offline-First
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
+    <button class="btn-confirm" onclick="confirmarRegistro()">Registrar</button>
+  </div>
+</div>
 
-        // Navegação
-        function nav(p) {
-            document.getElementById('page-resumo').style.transform = p === 'resumo' ? 'translateX(0)' : 'translateX(-100%)';
-            document.getElementById('page-mapa').style.transform = p === 'mapa' ? 'translateX(0)' : 'translateX(100%)';
-        }
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
-        // IA Local (Auto-fill de Contexto)
-        function updateSuggestions() {
-            const h = new Date().getHours();
-            const suggestions = h < 12 ? ["Uber", "Combustível"] : ["Almoço", "Bebida", "Corre"];
-            const container = document.getElementById('smart-chips');
-            container.innerHTML = suggestions.map(s => `<div class="chip" onclick="registrar('${s}')">${s}</div>`).join('');
-        }
+<script>
+  const META_DEFAULT = 150;
+  let selectedCat = null;
+  let currentPage = 'resumo';
 
-        updateSuggestions();
-    </script>
+  const CATEGORIES = [
+    { id: 'uber',        name: 'Uber',      emoji: '🚗', color: '#1c1c1e' },
+    { id: 'comida',      name: 'Comida',    emoji: '🍔', color: '#ff9f0a' },
+    { id: 'combustivel', name: 'Gasolina',  emoji: '⛽', color: '#ff6b35' },
+    { id: 'mercado',     name: 'Mercado',   emoji: '🛒', color: '#34c759' },
+    { id: 'lazer',       name: 'Lazer',     emoji: '🎮', color: '#5e5ce6' },
+    { id: 'saude',       name: 'Saúde',     emoji: '💊', color: '#ff3b30' },
+    { id: 'pix',         name: 'PIX',       emoji: '💸', color: '#007aff' },
+    { id: 'outros',      name: 'Outros',    emoji: '📦', color: '#8e8e93' },
+  ];
+
+  const TIME_CHIPS = {
+    morning:   [{ emoji:'🚗', label:'Uber' },   { emoji:'☕', label:'Café' },    { emoji:'⛽', label:'Gasolina' }],
+    afternoon: [{ emoji:'🍔', label:'Almoço' },  { emoji:'💧', label:'Bebida' }, { emoji:'🛒', label:'Mercado' }],
+    evening:   [{ emoji:'🍕', label:'Jantar' },  { emoji:'🎮', label:'Lazer' },  { emoji:'💸', label:'PIX' }],
+    night:     [{ emoji:'🚗', label:'Uber' },   { emoji:'🍕', label:'Comida' },  { emoji:'📦', label:'Outros' }],
+  };
+
+  function loadTxs() {
+    try { return JSON.parse(localStorage.getItem('movvo_txs') || '[]'); } catch { return []; }
+  }
+  function saveTxs(arr) { localStorage.setItem('movvo_txs', JSON.stringify(arr)); }
+  function loadMeta() { return parseFloat(localStorage.getItem('movvo_meta') || String(META_DEFAULT)); }
+  function saveMeta(v) { localStorage.setItem('movvo_meta', String(v)); }
+  function todayKey() { return new Date().toISOString().slice(0, 10); }
+  function todayTxs() { return loadTxs().filter(t => t.date === todayKey()); }
+  function totalHoje() { return todayTxs().reduce((s, t) => s + t.value, 0); }
+
+  const PAGE_ORDER = { resumo: 0, mapa: 1, perfil: 2 };
+  const TITLES     = { resumo: 'Resumo', mapa: 'Mapa de Calor', perfil: 'Perfil' };
+
+  function navTo(p) {
+    if (p === currentPage) return;
+    haptic();
+    const next = PAGE_ORDER[p];
+    document.querySelectorAll('.page').forEach(el => {
+      el.classList.remove('active', 'hidden-left', 'hidden-right');
+      const pos = PAGE_ORDER[el.id.replace('page-', '')];
+      if (pos < next)      el.classList.add('hidden-left');
+      else if (pos > next) el.classList.add('hidden-right');
+      else                 el.classList.add('active');
+    });
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const tb = document.getElementById('tab-' + p);
+    if (tb) tb.classList.add('active');
+    document.getElementById('topTitle').textContent = TITLES[p];
+    currentPage = p;
+    if (p === 'mapa') { drawHeatmap(); buildWeekList(); }
+  }
+
+  let modalOpen = false;
+  function toggleModal() { haptic(); modalOpen ? closeModal() : openModal(); }
+
+  function openModal() {
+    modalOpen = true;
+    document.getElementById('modalOverlay').classList.add('visible');
+    document.getElementById('fabBtn').classList.add('open');
+    setTimeout(() => document.getElementById('inputValor').focus(), 100);
+    buildCatGrid();
+  }
+
+  function closeModal() {
+    modalOpen = false;
+    document.getElementById('modalOverlay').classList.remove('visible');
+    document.getElementById('fabBtn').classList.remove('open');
+    document.getElementById('inputValor').value = '';
+    document.getElementById('inputDesc').value  = '';
+    selectedCat = null;
+    buildCatGrid();
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
+  }
+
+  function buildCatGrid() {
+    document.getElementById('catGrid').innerHTML = CATEGORIES.map(c => `
+      <button class="cat-btn ${selectedCat === c.id ? 'selected' : ''}" onclick="selectCat('${c.id}')">
+        <span class="cat-emoji">${c.emoji}</span>
+        <span class="cat-name">${c.name}</span>
+      </button>
+    `).join('');
+  }
+
+  function selectCat(id) { selectedCat = id; haptic(); buildCatGrid(); }
+
+  function formatCurrency(el) {
+    const raw = el.value.replace(/\D/g, '');
+    if (!raw) { el.value = ''; return; }
+    const num = parseInt(raw, 10) / 100;
+    el.value = 'R$ ' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function parseCurrency(str) {
+    if (!str) return 0;
+    return parseFloat(str.replace('R$ ', '').replace(/\./g, '').replace(',', '.')) || 0;
+  }
+
+  function confirmarRegistro() {
+    const valor = parseCurrency(document.getElementById('inputValor').value);
+    if (!valor || valor <= 0) { showToast('Informe um valor válido'); return; }
+    const cat  = CATEGORIES.find(c => c.id === selectedCat) || CATEGORIES[7];
+    const desc = document.getElementById('inputDesc').value.trim() || cat.name;
+    const tx   = { id: Date.now(), date: todayKey(), hour: new Date().getHours(), value: valor, cat: cat.id, emoji: cat.emoji, label: desc };
+    const all  = loadTxs();
+    all.unshift(tx);
+    saveTxs(all);
+    haptic('success');
+    closeModal();
+    updateUI();
+    showToast(cat.emoji + ' R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' registrado!');
+    if (totalHoje() >= loadMeta()) setTimeout(celebrar, 400);
+  }
+
+  function quickFromChip(label) {
+    const cat = CATEGORIES.find(c => c.name.toLowerCase() === label.toLowerCase()) || CATEGORIES[7];
+    openModal();
+    selectedCat = cat.id;
+    document.getElementById('inputDesc').value = label;
+    buildCatGrid();
+  }
+
+  function updateUI() {
+    const meta  = loadMeta();
+    const total = totalHoje();
+    const pct   = Math.min((total / meta) * 100, 100);
+    const left  = Math.max(meta - total, 0);
+    const leftTxt = left > 0
+      ? 'R$ ' + left.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' restantes'
+      : '🎉 Meta batida!';
+
+    document.getElementById('heroValue').textContent =
+      'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    document.getElementById('heroSub').innerHTML =
+      'Meta: R$ ' + meta.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' · <span>' + leftTxt + '</span>';
+    document.getElementById('metaPct').textContent     = Math.round(pct) + '%';
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('statTransactions').textContent = todayTxs().length;
+    document.getElementById('statStreak').textContent       = calcStreak();
+
+    renderTxList(todayTxs());
+    updateChips();
+    updateMetaDisplay();
+  }
+
+  function renderTxList(txs) {
+    const list = document.getElementById('txList');
+    if (!txs.length) {
+      list.innerHTML = '<div style="padding:24px; text-align:center; color:var(--label-2); font-size:14px;">Nenhum registro ainda.<br>Toque em <strong>+</strong> para começar.</div>';
+      return;
+    }
+    list.innerHTML = txs.map(t => `
+      <div class="tx-item">
+        <div class="tx-icon" style="background:${getCatColor(t.cat)}1a">${t.emoji}</div>
+        <div class="tx-info">
+          <div class="tx-name">${t.label}</div>
+          <div class="tx-time">${formatHour(t.hour)}</div>
+        </div>
+        <div class="tx-value">− R$ ${t.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+      </div>
+    `).join('');
+  }
+
+  function getCatColor(id) { return (CATEGORIES.find(c => c.id === id) || {}).color || '#8e8e93'; }
+
+  function formatHour(h) {
+    const now = new Date().getHours();
+    if (h === now) return 'Agora há pouco';
+    return String(h).padStart(2, '0') + ':00';
+  }
+
+  function updateChips() {
+    const h = new Date().getHours();
+    let set, label;
+    if (h < 12)      { set = TIME_CHIPS.morning;   label = 'Bom dia ☀️ — sugestões para a manhã'; }
+    else if (h < 14) { set = TIME_CHIPS.afternoon;  label = 'Hora do almoço 🍽️'; }
+    else if (h < 20) { set = TIME_CHIPS.afternoon;  label = 'Tarde — sugestões rápidas'; }
+    else             { set = TIME_CHIPS.night;       label = 'Boa noite 🌙 — sugestões'; }
+    document.getElementById('chipContext').textContent = label;
+    document.getElementById('chipRow').innerHTML = set.map(c =>
+      '<div class="chip" onclick="quickFromChip(\'' + c.label + '\')"><span class="chip-icon">' + c.emoji + '</span>' + c.label + '</div>'
+    ).join('');
+  }
+
+  function updateMetaDisplay() {
+    document.getElementById('metaDisplay').textContent =
+      'R$ ' + loadMeta().toLocaleString('pt-BR');
+  }
+
+  function drawHeatmap() {
+    const canvas = document.getElementById('heatmapCanvas');
+    const ctx    = canvas.getContext('2d');
+    const W = canvas.offsetWidth;
+    const H = canvas.offsetHeight;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    ctx.scale(dpr, dpr);
+
+    const txs    = loadTxs();
+    const days   = 7;
+    const hours  = 24;
+    const matrix = Array.from({ length: days }, () => new Array(hours).fill(0));
+    const labels = [];
+
+    for (let d = 0; d < days; d++) {
+      const dt = new Date();
+      dt.setDate(dt.getDate() - (days - 1 - d));
+      const key = dt.toISOString().slice(0, 10);
+      labels.push(['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][dt.getDay()]);
+      txs.filter(t => t.date === key).forEach(t => {
+        if (t.hour >= 0 && t.hour < 24) matrix[d][t.hour] += t.value;
+      });
+    }
+
+    const maxVal = Math.max(...matrix.flat(), 1);
+    const padL = 32, padT = 16, padR = 8, padB = 22;
+    const cellW = (W - padL - padR) / hours;
+    const cellH = (H - padT - padB) / days;
+
+    for (let d = 0; d < days; d++) {
+      for (let h = 0; h < hours; h++) {
+        const val = matrix[d][h];
+        const intensity = val / maxVal;
+        ctx.fillStyle = val === 0
+          ? 'rgba(0,122,255,0.05)'
+          : 'rgba(0,122,255,' + (0.12 + intensity * 0.85) + ')';
+        const x = padL + h * cellW + 1;
+        const y = padT + d * cellH + 1;
+        const r = Math.min(4, cellW * 0.35);
+        ctx.beginPath();
+        ctx.roundRect(x, y, cellW - 2, cellH - 2, r);
+        ctx.fill();
+      }
+    }
+
+    ctx.fillStyle = 'rgba(60,60,67,0.45)';
+    ctx.font = '500 ' + Math.round(cellH * 0.48) + 'px -apple-system';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let d = 0; d < days; d++) {
+      ctx.fillText(labels[d], padL - 4, padT + d * cellH + cellH / 2);
+    }
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    for (let h = 0; h < hours; h += 4) {
+      ctx.fillText(String(h).padStart(2,'0'), padL + h * cellW + cellW / 2, H - 4);
+    }
+  }
+
+  function buildWeekList() {
+    const txs  = loadTxs();
+    const meta = loadMeta();
+    let html   = '';
+    const dNames = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    for (let d = 6; d >= 0; d--) {
+      const dt  = new Date(); dt.setDate(dt.getDate() - d);
+      const key = dt.toISOString().slice(0, 10);
+      const tot = txs.filter(t => t.date === key).reduce((s, t) => s + t.value, 0);
+      const pct = Math.min((tot / meta) * 100, 100);
+      const isToday = d === 0;
+      html += `
+        <div class="setting-row">
+          <span class="setting-icon">${isToday ? '📍' : dNames[dt.getDay()]}</span>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:${isToday ? 700 : 400}">${isToday ? 'Hoje' : dt.toLocaleDateString('pt-BR', { day:'2-digit', month:'short' })}</div>
+            <div style="margin-top:5px;height:4px;background:var(--label-3);border-radius:99px;overflow:hidden">
+              <div style="width:${pct}%;height:100%;background:${pct >= 100 ? 'var(--green)' : 'var(--accent)'};border-radius:99px"></div>
+            </div>
+          </div>
+          <span style="font-size:14px;font-weight:600;color:${tot > 0 ? 'var(--red)' : 'var(--label-3)'};margin-left:12px">
+            ${tot > 0 ? '− R$ ' + tot.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—'}
+          </span>
+        </div>
+      `;
+    }
+    document.getElementById('weekList').innerHTML = html;
+  }
+
+  function calcStreak() {
+    const days = new Set(loadTxs().map(t => t.date));
+    let streak = 0;
+    const dt = new Date();
+    while (true) {
+      const key = dt.toISOString().slice(0, 10);
+      if (!days.has(key)) break;
+      streak++;
+      dt.setDate(dt.getDate() - 1);
+    }
+    return streak;
+  }
+
+  function celebrar() {
+    haptic('success');
+    showToast('🎉 Meta diária batida! Incrível!');
+    const colors = ['#007aff','#34c759','#ff9f0a','#ff3b30','#af52de','#5e5ce6'];
+    for (let i = 0; i < 60; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.cssText =
+          'left:' + (Math.random() * 100) + 'vw;' +
+          'top:-10px;' +
+          'background:' + colors[Math.floor(Math.random() * colors.length)] + ';' +
+          'animation-delay:' + (Math.random() * 0.5) + 's;' +
+          'animation-duration:' + (1.4 + Math.random() * 0.8) + 's;' +
+          'transform:rotate(' + (Math.random() * 360) + 'deg);';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 2600);
+      }, i * 25);
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function haptic(type) {
+    if (!navigator.vibrate) return;
+    navigator.vibrate(type === 'success' ? [10, 50, 20] : type === 'error' ? [50, 20, 50] : [8]);
+  }
+
+  function editMeta() {
+    const val = prompt('Nova meta diária (R$):', loadMeta());
+    if (val === null) return;
+    const num = parseFloat(val.replace(',', '.'));
+    if (!isNaN(num) && num > 0) { saveMeta(num); updateUI(); showToast('✅ Meta atualizada!'); }
+  }
+
+  function clearData() {
+    if (confirm('Apagar todos os registros? Não pode ser desfeito.')) {
+      localStorage.removeItem('movvo_txs');
+      updateUI();
+      showToast('🗑️ Dados removidos');
+    }
+  }
+
+  function showHistory() { showToast('📋 Histórico completo em breve!'); }
+
+  window.addEventListener('online',  () => document.getElementById('offlineBanner').classList.remove('visible'));
+  window.addEventListener('offline', () => document.getElementById('offlineBanner').classList.add('visible'));
+  if (!navigator.onLine) document.getElementById('offlineBanner').classList.add('visible');
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+  buildCatGrid();
+  updateUI();
+</script>
 </body>
 </html>
