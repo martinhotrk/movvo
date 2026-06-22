@@ -1,77 +1,203 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MOVVO - App</title>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        body { font-family: sans-serif; background: #0f172a; color: white; margin: 0; padding: 20px; }
-        .tab-btn { padding: 10px; cursor: pointer; background: #1e293b; color: white; border: none; }
-        .tab-btn.active { background: #3b82f6; }
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; flex-direction: column; justify-content: center; padding: 20px; z-index: 9999; }
-        .input-group { margin-bottom: 15px; }
-        input { width: 100%; padding: 12px; border-radius: 5px; border: 1px solid #334155; background: #1e293b; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; margin-top: 10px; border: none; background: #3b82f6; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MOVVO - App</title>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #0f172a;
+      color: white;
+      margin: 0;
+      padding: 20px;
+    }
+
+    #login-overlay {
+      position: fixed;
+      inset: 0;
+      background: #0f172a;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 20px;
+      z-index: 9999;
+    }
+
+    .input-group { margin-bottom: 15px; }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: white;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      border: none;
+      background: #3b82f6;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .tab-btn {
+      padding: 10px;
+      cursor: pointer;
+      background: #1e293b;
+      color: white;
+      border: none;
+      flex: 1;
+    }
+
+    .tab-btn.active {
+      background: #3b82f6;
+    }
+
+    .row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    #valor-display {
+      margin: 20px 0;
+    }
+  </style>
 </head>
+
 <body>
 
-    <div id="login-overlay">
-        <h2>Entrar no MOVVO</h2>
-        <div class="input-group"><input type="email" id="login-email" placeholder="E-mail"></div>
-        <div class="input-group"><input type="password" id="login-senha" placeholder="Senha"></div>
-        <button id="btn-login">Entrar</button>
-    </div>
+<!-- LOGIN -->
+<div id="login-overlay">
+  <h2>Entrar no MOVVO</h2>
 
-    <h1>Painel</h1>
-    <div style="display:flex; gap:5px;">
-        <button class="tab-btn active" id="btn-ganho">Ganhos</button>
-        <button class="tab-btn" id="btn-gasto">Gastos</button>
-    </div>
+  <div class="input-group">
+    <input type="email" id="login-email" placeholder="E-mail">
+  </div>
 
-    <h2 id="valor-display">R$ 0,00</h2>
-    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">
-        <button onclick="digitar(1)">1</button>
-        <button onclick="digitar(2)">2</button>
-        <button onclick="digitar(3)">3</button>
-        <button id="btn-ok" style="background:green">OK</button>
-    </div>
+  <div class="input-group">
+    <input type="password" id="login-senha" placeholder="Senha">
+  </div>
 
-    <script>
-        // --- COLOQUE SUA NOVA CHAVE AQUI APÓS REGENERAR NO SITE ---
-        const SUPABASE_URL = "https://xquszdfzmjifuscdhrli.supabase.co";
-        const SUPABASE_KEY = "SUA_NOVA_CHAVE_AQUI"; 
-        
-        let valorAtual = 0;
-        let tipoAtual = 'ganho';
+  <button id="btn-login">Entrar</button>
+</div>
 
-        // Eventos de clique (Seguros)
-        document.getElementById('btn-login').addEventListener('click', () => {
-            alert("Tentando entrar...");
-        });
+<!-- APP -->
+<h1>Painel</h1>
 
-        document.getElementById('btn-ok').addEventListener('click', () => {
-            alert("Registrando valor: " + document.getElementById('valor-display').innerText);
-        });
+<div class="row">
+  <button class="tab-btn active" id="btn-ganho">Ganhos</button>
+  <button class="tab-btn" id="btn-gasto">Gastos</button>
+</div>
 
-        document.getElementById('btn-ganho').addEventListener('click', () => {
-            tipoAtual = 'ganho';
-            document.getElementById('btn-ganho').classList.add('active');
-            document.getElementById('btn-gasto').classList.remove('active');
-        });
+<h2 id="valor-display">R$ 0,00</h2>
 
-        document.getElementById('btn-gasto').addEventListener('click', () => {
-            tipoAtual = 'gasto';
-            document.getElementById('btn-gasto').classList.add('active');
-            document.getElementById('btn-ganho').classList.remove('active');
-        });
+<div class="grid">
+  <button onclick="digitar(1)">1</button>
+  <button onclick="digitar(2)">2</button>
+  <button onclick="digitar(3)">3</button>
 
-        function digitar(n) {
-            valorAtual = (valorAtual * 10) + n;
-            document.getElementById('valor-display').innerText = (valorAtual / 100).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-        }
-    </script>
+  <button onclick="digitar(4)">4</button>
+  <button onclick="digitar(5)">5</button>
+  <button onclick="digitar(6)">6</button>
+
+  <button onclick="digitar(7)">7</button>
+  <button onclick="digitar(8)">8</button>
+  <button onclick="digitar(9)">9</button>
+
+  <button onclick="limpar()">C</button>
+  <button onclick="digitar(0)">0</button>
+  <button id="btn-ok" style="background: green;">OK</button>
+</div>
+
+<script>
+  let valorAtual = ""; // string pra não quebrar centavos
+  let tipoAtual = "ganho";
+
+  const display = document.getElementById("valor-display");
+
+  function atualizarDisplay() {
+    const valorNumero = Number(valorAtual || 0) / 100;
+
+    display.innerText = valorNumero.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
+  }
+
+  function digitar(n) {
+    valorAtual += n.toString();
+    atualizarDisplay();
+  }
+
+  function limpar() {
+    valorAtual = "";
+    atualizarDisplay();
+  }
+
+  document.getElementById("btn-login").addEventListener("click", () => {
+    const email = document.getElementById("login-email").value;
+    const senha = document.getElementById("login-senha").value;
+
+    if (!email || !senha) {
+      alert("Preenche isso direito, por favor.");
+      return;
+    }
+
+    // simulação de login
+    document.getElementById("login-overlay").style.display = "none";
+  });
+
+  document.getElementById("btn-ok").addEventListener("click", () => {
+    const valorFinal = Number(valorAtual || 0) / 100;
+
+    if (valorFinal <= 0) {
+      alert("Valor inválido. Não inventa moda.");
+      return;
+    }
+
+    console.log({
+      tipo: tipoAtual,
+      valor: valorFinal
+    });
+
+    alert(`Registrado: ${tipoAtual} - ${valorFinal.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    })}`);
+
+    valorAtual = "";
+    atualizarDisplay();
+  });
+
+  document.getElementById("btn-ganho").addEventListener("click", () => {
+    tipoAtual = "ganho";
+    document.getElementById("btn-ganho").classList.add("active");
+    document.getElementById("btn-gasto").classList.remove("active");
+  });
+
+  document.getElementById("btn-gasto").addEventListener("click", () => {
+    tipoAtual = "gasto";
+    document.getElementById("btn-gasto").classList.add("active");
+    document.getElementById("btn-ganho").classList.remove("active");
+  });
+
+  atualizarDisplay();
+</script>
+
 </body>
 </html>
