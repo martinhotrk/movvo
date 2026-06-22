@@ -1,203 +1,72 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MOVVO - App</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
+    <title>MOVVO Elite</title>
+    <style>
+        :root { --accent: #007aff; --bg: #f2f2f7; --card: #ffffff; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 0; }
+        
+        /* Layout de Telas */
+        .page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 20px; box-sizing: border-box; }
+        #page-resumo { transform: translateX(0); }
+        #page-mapa { transform: translateX(100%); }
 
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #0f172a;
-      color: white;
-      margin: 0;
-      padding: 20px;
-    }
-
-    #login-overlay {
-      position: fixed;
-      inset: 0;
-      background: #0f172a;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 20px;
-      z-index: 9999;
-    }
-
-    .input-group { margin-bottom: 15px; }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid #334155;
-      background: #1e293b;
-      color: white;
-      box-sizing: border-box;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 10px;
-      border: none;
-      background: #3b82f6;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .tab-btn {
-      padding: 10px;
-      cursor: pointer;
-      background: #1e293b;
-      color: white;
-      border: none;
-      flex: 1;
-    }
-
-    .tab-btn.active {
-      background: #3b82f6;
-    }
-
-    .row {
-      display: flex;
-      gap: 6px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-
-    #valor-display {
-      margin: 20px 0;
-    }
-  </style>
+        /* Estilo iOS */
+        .glass-card { background: var(--card); border-radius: 24px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .chip { display: inline-block; padding: 8px 16px; border-radius: 20px; background: #e5e5ea; font-size: 14px; margin: 5px; }
+        
+        /* Barra de Navegação */
+        .tab-bar { position: fixed; bottom: 0; width: 100%; height: 80px; background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; z-index: 10; border-top: 1px solid #d1d1d6; }
+        .btn-fab { width: 64px; height: 64px; background: var(--accent); border-radius: 50%; color: white; border: none; font-size: 30px; box-shadow: 0 8px 16px rgba(0,122,255,0.4); }
+    </style>
 </head>
-
 <body>
 
-<!-- LOGIN -->
-<div id="login-overlay">
-  <h2>Entrar no MOVVO</h2>
+    <div id="page-resumo" class="page">
+        <h1>Resumo</h1>
+        <div class="glass-card">
+            <p>Meta do dia</p>
+            <h2 id="saldo">R$ 0,00</h2>
+        </div>
+        <h3>Sugestão de Registro</h3>
+        <div id="smart-chips"></div>
+    </div>
 
-  <div class="input-group">
-    <input type="email" id="login-email" placeholder="E-mail">
-  </div>
+    <div id="page-mapa" class="page">
+        <h1>Mapa de Calor</h1>
+        <div class="glass-card" style="height: 300px;"></div>
+    </div>
 
-  <div class="input-group">
-    <input type="password" id="login-senha" placeholder="Senha">
-  </div>
+    <nav class="tab-bar">
+        <button onclick="nav('resumo')">Resumo</button>
+        <button class="btn-fab" onclick="quickCapture()">+</button>
+        <button onclick="nav('mapa')">Mapa</button>
+    </nav>
 
-  <button id="btn-login">Entrar</button>
-</div>
+    <script>
+        // Registrar Service Worker para Offline-First
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
 
-<!-- APP -->
-<h1>Painel</h1>
+        // Navegação
+        function nav(p) {
+            document.getElementById('page-resumo').style.transform = p === 'resumo' ? 'translateX(0)' : 'translateX(-100%)';
+            document.getElementById('page-mapa').style.transform = p === 'mapa' ? 'translateX(0)' : 'translateX(100%)';
+        }
 
-<div class="row">
-  <button class="tab-btn active" id="btn-ganho">Ganhos</button>
-  <button class="tab-btn" id="btn-gasto">Gastos</button>
-</div>
+        // IA Local (Auto-fill de Contexto)
+        function updateSuggestions() {
+            const h = new Date().getHours();
+            const suggestions = h < 12 ? ["Uber", "Combustível"] : ["Almoço", "Bebida", "Corre"];
+            const container = document.getElementById('smart-chips');
+            container.innerHTML = suggestions.map(s => `<div class="chip" onclick="registrar('${s}')">${s}</div>`).join('');
+        }
 
-<h2 id="valor-display">R$ 0,00</h2>
-
-<div class="grid">
-  <button onclick="digitar(1)">1</button>
-  <button onclick="digitar(2)">2</button>
-  <button onclick="digitar(3)">3</button>
-
-  <button onclick="digitar(4)">4</button>
-  <button onclick="digitar(5)">5</button>
-  <button onclick="digitar(6)">6</button>
-
-  <button onclick="digitar(7)">7</button>
-  <button onclick="digitar(8)">8</button>
-  <button onclick="digitar(9)">9</button>
-
-  <button onclick="limpar()">C</button>
-  <button onclick="digitar(0)">0</button>
-  <button id="btn-ok" style="background: green;">OK</button>
-</div>
-
-<script>
-  let valorAtual = ""; // string pra não quebrar centavos
-  let tipoAtual = "ganho";
-
-  const display = document.getElementById("valor-display");
-
-  function atualizarDisplay() {
-    const valorNumero = Number(valorAtual || 0) / 100;
-
-    display.innerText = valorNumero.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    });
-  }
-
-  function digitar(n) {
-    valorAtual += n.toString();
-    atualizarDisplay();
-  }
-
-  function limpar() {
-    valorAtual = "";
-    atualizarDisplay();
-  }
-
-  document.getElementById("btn-login").addEventListener("click", () => {
-    const email = document.getElementById("login-email").value;
-    const senha = document.getElementById("login-senha").value;
-
-    if (!email || !senha) {
-      alert("Preenche isso direito, por favor.");
-      return;
-    }
-
-    // simulação de login
-    document.getElementById("login-overlay").style.display = "none";
-  });
-
-  document.getElementById("btn-ok").addEventListener("click", () => {
-    const valorFinal = Number(valorAtual || 0) / 100;
-
-    if (valorFinal <= 0) {
-      alert("Valor inválido. Não inventa moda.");
-      return;
-    }
-
-    console.log({
-      tipo: tipoAtual,
-      valor: valorFinal
-    });
-
-    alert(`Registrado: ${tipoAtual} - ${valorFinal.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    })}`);
-
-    valorAtual = "";
-    atualizarDisplay();
-  });
-
-  document.getElementById("btn-ganho").addEventListener("click", () => {
-    tipoAtual = "ganho";
-    document.getElementById("btn-ganho").classList.add("active");
-    document.getElementById("btn-gasto").classList.remove("active");
-  });
-
-  document.getElementById("btn-gasto").addEventListener("click", () => {
-    tipoAtual = "gasto";
-    document.getElementById("btn-gasto").classList.add("active");
-    document.getElementById("btn-ganho").classList.remove("active");
-  });
-
-  atualizarDisplay();
-</script>
-
+        updateSuggestions();
+    </script>
 </body>
 </html>
