@@ -1,344 +1,77 @@
-<script>
-        // Conexão Direta ao Endpoint do Supabase REST API
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOVVO - App</title>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: white; margin: 0; padding: 20px; }
+        .tab-btn { padding: 10px; cursor: pointer; background: #1e293b; color: white; border: none; }
+        .tab-btn.active { background: #3b82f6; }
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; flex-direction: column; justify-content: center; padding: 20px; z-index: 9999; }
+        .input-group { margin-bottom: 15px; }
+        input { width: 100%; padding: 12px; border-radius: 5px; border: 1px solid #334155; background: #1e293b; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; margin-top: 10px; border: none; background: #3b82f6; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <h2>Entrar no MOVVO</h2>
+        <div class="input-group"><input type="email" id="login-email" placeholder="E-mail"></div>
+        <div class="input-group"><input type="password" id="login-senha" placeholder="Senha"></div>
+        <button id="btn-login">Entrar</button>
+    </div>
+
+    <h1>Painel</h1>
+    <div style="display:flex; gap:5px;">
+        <button class="tab-btn active" id="btn-ganho">Ganhos</button>
+        <button class="tab-btn" id="btn-gasto">Gastos</button>
+    </div>
+
+    <h2 id="valor-display">R$ 0,00</h2>
+    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">
+        <button onclick="digitar(1)">1</button>
+        <button onclick="digitar(2)">2</button>
+        <button onclick="digitar(3)">3</button>
+        <button id="btn-ok" style="background:green">OK</button>
+    </div>
+
+    <script>
+        // --- COLOQUE SUA NOVA CHAVE AQUI APÓS REGENERAR NO SITE ---
         const SUPABASE_URL = "https://xquszdfzmjifuscdhrli.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_zaUOU7y9Hh6U2yDQ8mpv8Q_tjnWWo74";
-        const API_BASE_URL = `${SUPABASE_URL}/rest/v1`;
-
-        const SUPABASE_HEADERS = {
-            "apikey": SUPABASE_KEY,
-            "Authorization": `Bearer ${SUPABASE_KEY}`,
-            "Content-Type": "application/json",
-            "Prefer": "return=representation"
-        };
-
-        let currentFluxo = 'ganho';
-        let currentInputValue = 0; 
-        let loginMode = 'completo'; 
+        const SUPABASE_KEY = "SUA_NOVA_CHAVE_AQUI"; 
         
-        // Variáveis do Leaflet
-        let mapa, marcadorUsuario, marcadorDestino;
-        let idCorridaAtiva = null;
-        let latAtual = -3.7319, lngAtual = -38.5267; // Padrão Inicial (Fortaleza)
+        let valorAtual = 0;
+        let tipoAtual = 'ganho';
 
-        document.addEventListener("DOMContentLoaded", () => {
-            verificarStatusAutenticacao();
+        // Eventos de clique (Seguros)
+        document.getElementById('btn-login').addEventListener('click', () => {
+            alert("Tentando entrar...");
         });
 
-        // --- CONTROLE DE FLUXO (ABAS) ---
-        function mudarFluxo(tipo, elemento) {
-            currentFluxo = tipo;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'ganho', 'gasto', 'maps'));
-            elemento.classList.add('active', tipo);
+        document.getElementById('btn-ok').addEventListener('click', () => {
+            alert("Registrando valor: " + document.getElementById('valor-display').innerText);
+        });
 
-            if (tipo === 'maps') {
-                document.getElementById('fluxo-teclado').style.display = 'none';
-                document.getElementById('container-mapa').style.display = 'flex';
-                inicializarMapaNativo();
-            } else {
-                document.getElementById('fluxo-teclado').style.display = 'flex';
-                document.getElementById('container-mapa').style.display = 'none';
-            }
+        document.getElementById('btn-ganho').addEventListener('click', () => {
+            tipoAtual = 'ganho';
+            document.getElementById('btn-ganho').classList.add('active');
+            document.getElementById('btn-gasto').classList.remove('active');
+        });
+
+        document.getElementById('btn-gasto').addEventListener('click', () => {
+            tipoAtual = 'gasto';
+            document.getElementById('btn-gasto').classList.add('active');
+            document.getElementById('btn-ganho').classList.remove('active');
+        });
+
+        function digitar(n) {
+            valorAtual = (valorAtual * 10) + n;
+            document.getElementById('valor-display').innerText = (valorAtual / 100).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
         }
-
-        // --- INICIALIZAÇÃO DO MAPA GRATUITO ---
-        function inicializarMapaNativo() {
-            if (mapa) {
-                setTimeout(() => mapa.invalidateSize(), 100);
-                return;
-            }
-
-            mapa = L.map('map').setView([latAtual, lngAtual], 14);
-
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(mapa);
-
-            marcadorUsuario = L.marker([latAtual, lngAtual]).addTo(mapa).bindPopup("Você está aqui").openPopup();
-
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(pos => {
-                    latAtual = pos.coords.latitude;
-                    lngAtual = pos.coords.longitude;
-                    mapa.setView([latAtual, lngAtual], 15);
-                    marcadorUsuario.setLatLng([latAtual, lngAtual]);
-                });
-            }
-        }
-
-        // --- CONTROLE DAS CORRIDAS DIRETO NO SUPABASE ---
-        function gerenciarStatusCorrida() {
-            const btn = document.getElementById('btn-status-corre');
-            const destinoTexto = document.getElementById('map-destino').value;
-            const usuarioLogado = localStorage.getItem('movvo_user') || '';
-
-            if (!idCorridaAtiva) {
-                if (!destinoTexto) {
-                    acionarIsland("Digite o destino primeiro! ⚠️");
-                    return;
-                }
-
-                acionarIsland("Abrindo Rota no Banco... 🗺️");
-                
-                let latDestinoFicticio = latAtual + 0.015;
-                let lngDestinoFicticio = lngAtual + 0.015;
-
-                if(marcadorDestino) mapa.removeLayer(marcadorDestino);
-                marcadorDestino = L.marker([latDestinoFicticio, lngDestinoFicticio]).addTo(mapa).bindPopup(`Destino: ${destinoTexto}`).openPopup();
-                
-                const bounds = L.latLngBounds([latAtual, lngAtual], [latDestinoFicticio, lngDestinoFicticio]);
-                mapa.fitBounds(bounds);
-
-                fetch(`${API_BASE_URL}/routes`, {
-                    method: "POST",
-                    headers: SUPABASE_HEADERS,
-                    body: JSON.stringify({
-                        email: usuarioLogado,
-                        origem: "Minha Localização Atual",
-                        destino: destinoTexto,
-                        lat_origem: latAtual,
-                        lng_origem: lngAtual,
-                        lat_destino: latDestinoFicticio,
-                        lng_destino: lngDestinoFicticio,
-                        distancia: 4.2,
-                        status: "em_andamento"
-                    })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data && data.length > 0) {
-                        idCorridaAtiva = data[0].id || data[0].rota_id;
-                        btn.innerText = "Concluir Corre e Ganhar 🏁";
-                        btn.style.background = "#10b981";
-                        acionarIsland("Rota Iniciada! Boa viagem 🏍️");
-                    } else {
-                        acionarIsland("Erro ao criar rota no banco ❌");
-                    }
-                })
-                .catch(() => acionarIsland("Erro de conexão com o banco ❌"));
-
-            } else {
-                acionarIsland("Fechando viagem... 📈");
-                
-                fetch(`${API_BASE_URL}/routes?id=eq.${idCorridaAtiva}`, {
-                    method: "PATCH",
-                    headers: SUPABASE_HEADERS,
-                    body: JSON.stringify({ status: "concluido" })
-                })
-                .then(res => {
-                    if (res.ok) {
-                        idCorridaAtiva = null;
-                        document.getElementById('map-destino').value = "";
-                        if(marcadorDestino) mapa.removeLayer(marcadorDestino);
-                        
-                        btn.innerText = "Iniciar Novo Corre 🏍️";
-                        btn.style.background = "var(--accent-color)";
-                        
-                        mudarFluxo('ganho', document.querySelectorAll('.tab-btn')[0]);
-                        acionarIsland("Corre concluído! Quanto você faturou? 💰");
-                    } else {
-                        acionarIsland("Erro ao fechar viagem no banco ❌");
-                    }
-                })
-                .catch(() => acionarIsland("Erro de conexão com o banco ❌"));
-            }
-        }
-
-        // --- AUTENTICAÇÃO DIRETA NA TABELA 'USUARIOS' DO SUPABASE ---
-        function verificarStatusAutenticacao() {
-            const usuarioSalvo = localStorage.getItem('movvo_user');
-            const wrapper = document.getElementById('inputs-wrapper');
-            const toggleBtn = document.getElementById('login-toggle');
-            
-            if (usuarioSalvo) {
-                loginMode = 'pin';
-                document.getElementById('login-title').innerText = "Bloqueio de Tela";
-                document.getElementById('login-subtitle').innerText = `Olá, ${usuarioSalvo}. Digite seu PIN de 4 dígitos para acessar.`;
-                document.getElementById('btn-acao-login').innerText = "Desbloquear";
-                if(toggleBtn) toggleBtn.style.display = 'none';
-                
-                wrapper.innerHTML = `<div class="input-group"><label>PIN de Acesso</label><input type="password" id="login-pin" maxlength="4" pattern="\\d*" inputmode="numeric" placeholder="****" autofocus></div>`;
-                document.getElementById('login-overlay').style.display = 'flex';
-            } else if (loginMode === 'cadastro') {
-                document.getElementById('login-title').innerText = "Criar Conta MOVVO";
-                document.getElementById('login-subtitle').innerText = "Cadastre-se para começar a rastrear seus corres.";
-                document.getElementById('btn-acao-login').innerText = "Cadastrar Conta";
-                if(toggleBtn) { toggleBtn.style.display = 'inline-block'; toggleBtn.innerText = "Já tenho uma conta. Entrar"; }
-
-                wrapper.innerHTML = `
-                    <div class="input-group"><label>Nome Completo</label><input type="text" id="reg-nome" placeholder="Ex: Pablo Marques" required></div>
-                    <div class="input-group"><label>E-mail</label><input type="email" id="reg-email" placeholder="seu@email.com" required></div>
-                    <div class="input-group"><label>Senha</label><input type="password" id="reg-senha" placeholder="Crie uma senha estável" required></div>
-                    <div class="input-group"><label>PIN Rápido (4 dígitos)</label><input type="password" id="reg-pin" maxlength="4" pattern="\\d*" inputmode="numeric" placeholder="Ex: 1234" required></div>`;
-            } else {
-                loginMode = 'completo';
-                document.getElementById('login-title').innerText = "Entrar no MOVVO";
-                document.getElementById('login-subtitle').innerText = "Insira seu e-mail e senha cadastrados para continuar.";
-                document.getElementById('btn-acao-login').innerText = "Entrar";
-                if(toggleBtn) { toggleBtn.style.display = 'inline-block'; toggleBtn.innerText = "Criar uma conta"; }
-                
-                wrapper.innerHTML = `
-                    <div class="input-group"><label>E-mail</label><input type="email" id="login-email" placeholder="seu@email.com" required></div>
-                    <div class="input-group"><label>Senha</label><input type="password" id="login-senha" placeholder="Sua senha" required></div>`;
-                document.getElementById('login-overlay').style.display = 'flex';
-            }
-        }
-
-        function alternarModoCadastro() {
-            loginMode = (loginMode === 'completo') ? 'cadastro' : 'completo';
-            verificarStatusAutenticacao();
-        }
-
-        function ejecutarAutenticacao() {
-            const btnAcao = document.getElementById('btn-acao-login');
-            btnAcao.innerText = "Processando... 🕒";
-            btnAcao.disabled = true;
-
-            if (loginMode === 'cadastro') {
-                const nome = document.getElementById('reg-nome').value;
-                const email = document.getElementById('reg-email').value;
-                const senha = document.getElementById('reg-senha').value;
-                const pin = document.getElementById('reg-pin').value;
-
-                fetch(`${API_BASE_URL}/usuarios?email=eq.${encodeURIComponent(email)}`, {
-                    method: "GET",
-                    headers: SUPABASE_HEADERS
-                })
-                .then(res => res.json())
-                .then(usuarios => {
-                    if (usuarios && usuarios.length > 0) {
-                        alert("Este e-mail já está cadastrado.");
-                        resetarBotaoLogin(btnAcao);
-                    } else {
-                        fetch(`${API_BASE_URL}/usuarios`, {
-                            method: "POST",
-                            headers: SUPABASE_HEADERS,
-                            body: JSON.stringify({ nome, email, senha, pin })
-                        })
-                        .then(res => {
-                            if(res.ok) {
-                                localStorage.setItem('movvo_user', email);
-                                localStorage.setItem('movvo_username', nome);
-                                document.getElementById('login-overlay').style.display = 'none';
-                                document.getElementById('txt-welcome').innerText = `Painel: ${nome}`;
-                                acionarIsland("Conta Criada! 🎉");
-                                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                                carregarTotais();
-                            } else {
-                                alert("Erro ao salvar cadastro.");
-                                resetarBotaoLogin(btnAcao);
-                            }
-                        });
-                    }
-                })
-                .catch(() => { alert("Erro de conexão."); resetarBotaoLogin(btnAcao); });
-
-            } else {
-                let queryUrl = "";
-                const emailSalvo = localStorage.getItem('movvo_user');
-                
-                if (loginMode === 'pin') {
-                    const pin = document.getElementById('login-pin').value;
-                    queryUrl = `${API_BASE_URL}/usuarios?email=eq.${encodeURIComponent(emailSalvo)}&pin=eq.${pin}`;
-                } else {
-                    const email = document.getElementById('login-email').value;
-                    const senha = document.getElementById('login-senha').value;
-                    queryUrl = `${API_BASE_URL}/usuarios?email=eq.${encodeURIComponent(email)}&senha=eq.${senha}`;
-                }
-
-                fetch(queryUrl, {
-                    method: "GET",
-                    headers: SUPABASE_HEADERS
-                })
-                .then(res => res.json())
-                .then(usuarios => {
-                    if (usuarios && usuarios.length > 0) {
-                        const user = usuarios[0];
-                        localStorage.setItem('movvo_user', user.email);
-                        localStorage.setItem('movvo_username', user.nome);
-                        document.getElementById('login-overlay').style.display = 'none';
-                        document.getElementById('txt-welcome').innerText = `Painel: ${user.nome}`;
-                        acionarIsland("Acesso Liberado! 🔑");
-                        carregarTotais();
-                    } else {
-                        alert(loginMode === 'pin' ? "PIN incorreto." : "E-mail ou senha incorretos.");
-                        resetarBotaoLogin(btnAcao);
-                    }
-                })
-                .catch(() => { alert("Erro ao conectar com o banco de dados."); resetarBotaoLogin(btnAcao); });
-            }
-        }
-
-        function resetarBotaoLogin(btn) { btn.disabled = false; verificarStatusAutenticacao(); }
-        function fazerLogout() { if(confirm("Deseja sair?")) { localStorage.clear(); loginMode = 'completo'; verificarStatusAutenticacao(); } }
-
-        function carregarTotais() {
-            const usuarioLogado = localStorage.getItem('movvo_user') || '';
-            if (!usuarioLogado) return;
-
-            fetch(`${API_BASE_URL}/transactions?email=eq.${encodeURIComponent(usuarioLogado)}`, {
-                method: "GET",
-                headers: SUPABASE_HEADERS
-            })
-            .then(res => res.json())
-            .then(transacoes => {
-                let totalGanhos = 0;
-                let totalGastos = 0;
-
-                if (transacoes && transacoes.length > 0) {
-                    transacoes.forEach(t => {
-                        totalGanhos += parseFloat(t.ganhos || 0);
-                        totalGastos += parseFloat(t.gastos || 0);
-                    });
-                }
-
-                const lucro = totalGanhos - totalGastos;
-
-                document.getElementById("ganhos-total").innerText = formatarMoeda(totalGanhos);
-                document.getElementById("gastos-total").innerText = formatarMoeda(totalGastos);
-                const lucroElement = document.getElementById("lucro-total");
-                lucroElement.innerText = formatarMoeda(lucro);
-                lucroElement.className = lucro >= 0 ? "value positivo" : "value negative";
-                fecharIsland("Painel Atualizado ⚡");
-            })
-            .catch(() => acionarIsland("Erro ao atualizar painel ❌"));
-        }
-
-        function processarEnvioCorre() {
-            if (currentInputValue === 0) { acionarIsland("Digite um valor válido! ⚠️"); return; }
-            let valorFinal = currentInputValue / 100;
-            let ganhos = currentFluxo === 'ganho' ? valorFinal : 0;
-            let gastos = currentFluxo === 'gasto' ? valorFinal : 0;
-            const usuarioLogado = localStorage.getItem('movvo_user') || '';
-
-            acionarIsland("Registrando Corre... ⚡");
-
-            fetch(`${API_BASE_URL}/transactions`, {
-                method: "POST",
-                headers: SUPABASE_HEADERS,
-                body: JSON.stringify({ email: usuarioLogado, ganhos, gastos })
-            })
-            .then(res => {
-                if (res.ok) {
-                    if (currentFluxo === 'ganho') confetti({ particleCount: 80, spread: 60, origin: { y: 0.8 } });
-                    currentInputValue = 0;
-                    atualizarDisplay();
-                    carregarTotais();
-                } else {
-                    acionarIsland("Erro ao salvar transação ❌");
-                }
-            })
-            .catch(() => acionarIsland("Erro de conexão ❌"));
-        }
-
-        function digitar(num) {
-            if (num === 'C') currentInputValue = 0;
-            else { if (currentInputValue.toString().length >= 8) return; currentInputValue = (currentInputValue * 10) + num; }
-            atualizarDisplay();
-        }
-        function atualizarDisplay() { document.getElementById("valor-display").innerText = formatarMoeda(currentInputValue / 100); }
-        function formatarMoeda(valor) { return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-        function acionarIsland(texto) { const island = document.getElementById("island"); const islandText = document.getElementById("island-text"); island.classList.add("expanded"); islandText.innerText = texto; }
-        function fecharIsland(textoFinal) { const island = document.getElementById("island"); const islandText = document.getElementById("island-text"); islandText.innerText = textoFinal; setTimeout(() => { island.classList.remove("expanded"); }, 2000); }
     </script>
 </body>
 </html>
